@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "w6ZwEBWsvqw=",
+  "success": true,
+  "projectFilePath": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\EmailCompleteApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Krisztian\\.nuget\\packages\\materialdesigncolors\\5.2.1\\materialdesigncolors.5.2.1.nupkg.sha512",
+    "C:\\Users\\Krisztian\\.nuget\\packages\\materialdesignthemes\\5.2.1\\materialdesignthemes.5.2.1.nupkg.sha512",
+    "C:\\Users\\Krisztian\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.39\\microsoft.xaml.behaviors.wpf.1.1.39.nupkg.sha512"
+  ],
+  "logs": []
+}
