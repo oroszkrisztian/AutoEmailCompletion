@@ -262,139 +262,102 @@
             </Button>
         </Grid>
         
-        <!-- Main content -->
-        <ScrollViewer Grid.Row="1" 
-                      VerticalScrollBarVisibility="Visible"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalAlignment="Center"
-                      >
-            <StackPanel MaxWidth="600" Margin="0,0,20,0" VerticalAlignment="Center"
-                        >
-                
-                
-                <!-- Input Fields in requested order -->
-                <TextBlock Text="Nr.Tank:" 
-                           FontSize="14" 
-                           FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextColor}"
-                           Margin="0,0,0,4"/>
-                <TextBox x:Name="nrTank"
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Margin="0,0,0,16"/>
-                
-                <!-- Date fields side by side -->
-                <Grid Margin="0,0,0,16" Height="74">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Date Pickup:" 
-                                   FontSize="14" 
-                                   FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextColor}"
-                                   Margin="0,0,0,4"/>
-                        <DatePicker x:Name="DatePickup"
-                                    Style="{StaticResource ModernDatePickerStyle}" 
-                                    SelectedDateFormat="Short"
-                                    IsTodayHighlighted="True"
-                                    Text="dd/mm/yyyy"
-                                    />
-                    </StackPanel>
-                    
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Date Deliver:" 
-                                   FontSize="14" 
-                                   FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextColor}"
-                                   Margin="0,0,0,4"/>
-                        <DatePicker x:Name="DateDeliver"
-                                    Style="{StaticResource ModernDatePickerStyle}" 
-                                    SelectedDateFormat="Short"
-                                    IsTodayHighlighted="True"/>
-                    </StackPanel>
-                </Grid>
-                <!-- Pickup and deliver address-->
-                <TextBlock Text="Address 1:" 
-                           FontSize="14" 
-                           FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextColor}"
-                           Margin="0,0,0,4"/>
-                <TextBox x:Name="Address1TextBox"
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Margin="0,0,0,16"/>
-                
-                <TextBlock Text="Address 2:" 
-                           FontSize="14" 
-                           FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextColor}"
-                           Margin="0,0,0,4"/>
-                <TextBox x:Name="Address2TextBox"
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Margin="0,0,0,16"/>
-                <!-- Description -->
-                <TextBlock Text="Description:" 
-                           FontSize="14" 
-                           FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextColor}"
-                           Margin="0,0,0,4"/>
-                <TextBox x:Name="DescriptionTextBox"
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Height="150"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,16"/>
+        <!-- Main content with tabs (headers fixed) -->
+        <TabControl Grid.Row="1" Margin="0,0,20,0">
+                <TabItem Header="Capac">
+                    <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel MaxWidth="600" Margin="10">
+                        <TextBlock Text="CLIENT:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacClientTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="120"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                        <TextBlock Text="RUTA:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacRutaTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
 
-                    <StackPanel Grid.Column="0" Grid.Row="0">
-                        <!-- Price -->
-                        <TextBlock Text="Price:" 
-                                   FontSize="14" 
-                                   FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextColor}"
-                                   Margin="0,0,0,4"/>
-                        <TextBox x:Name="PriceTextBox"
-                                 Style="{StaticResource ModernTextBoxStyle}"
-                                 Margin="0,0,0,16"/>
+                        <TextBlock Text="DATA:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <DatePicker x:Name="CapacDataDatePicker" Style="{StaticResource ModernDatePickerStyle}" SelectedDateFormat="Short" IsTodayHighlighted="True"/>
+                        <Border Height="8" Background="Transparent"/>
+
+                        <TextBlock Text="NUMAR INMATRICULARE:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacNumarInmatriculareTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="TRANSPORTATOR:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacTransportatorTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Column="0" Grid.Row="0">
+                                <TextBlock Text="PRET:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                                <TextBox x:Name="CapacPretTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Grid.Row="0">
+                                <TextBlock Text="Currency:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                                <TextBox x:Name="CapacCurrencyTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Cantitate incarcata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacCantitateTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Factura client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacFacturaClientTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Factura caraus:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacFacturaCarausTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
                     </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Comanda Transport">
+                    <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel MaxWidth="600" Margin="10">
+                        <!-- Input Fields in requested order -->
+                        <TextBlock Text="Nr.Tank:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="nrTank" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
 
-                    <StackPanel Grid.Column="2" Grid.Row="0">
-                        <!-- Currency -->
-                        <TextBlock Text="Currency:" 
-                                   FontSize="14" 
-                                   FontWeight="SemiBold" 
-                                   Foreground="{StaticResource TextColor}"
-                                   Margin="0,0,0,4"/>
-                        <TextBox x:Name="CurrencyTextBox"
-                                 Style="{StaticResource ModernTextBoxStyle}"
-                                 Margin="0,0,0,16"/>
+                        <!-- Date fields side by side -->
+                        <Grid Margin="0,0,0,16" Height="74">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Date Pickup:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                                <DatePicker x:Name="DatePickup" Style="{StaticResource ModernDatePickerStyle}" SelectedDateFormat="Short" IsTodayHighlighted="True" Text="dd/mm/yyyy"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Date Deliver:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                                <DatePicker x:Name="DateDeliver" Style="{StaticResource ModernDatePickerStyle}" SelectedDateFormat="Short" IsTodayHighlighted="True"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Pickup and deliver address-->
+                        <TextBlock Text="Address 1:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="Address1TextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Address 2:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="Address2TextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                        <!-- Description -->
+                        <TextBlock Text="Description:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="DescriptionTextBox" Style="{StaticResource ModernTextBoxStyle}" Height="150" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16"/>
+
+                        <!-- Max days -->
+                        <TextBlock Text="Max Days:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="MaxDaysTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
                     </StackPanel>
-
-                </Grid>
-                
-                <!-- Max days -->
-                <TextBlock Text="Max Days:" 
-                           FontSize="14" 
-                           FontWeight="SemiBold" 
-                           Foreground="{StaticResource TextColor}"
-                           Margin="0,0,0,4"/>
-                <TextBox x:Name="MaxDaysTextBox"
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Margin="0,0,0,16"/>
-                
-            </StackPanel>
-        </ScrollViewer>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
     </Grid>
 </UserControl> 

@@ -54,6 +54,10 @@
               "target": "Package",
               "version": "[5.0.0, )"
             },
+            "DocumentFormat.OpenXml": {
+              "target": "Package",
+              "version": "[2.17.1, )"
+            },
             "MaterialDesignThemes": {
               "target": "Package",
               "version": "[5.2.1, )"
@@ -69,6 +73,10 @@
             "NPOI.HWPFCore": {
               "target": "Package",
               "version": "[2.3.0.1, )"
+            },
+            "Open-Xml-PowerTools": {
+              "target": "Package",
+              "version": "[4.4.0, )"
             },
             "Xceed.Words.NET": {
               "target": "Package",

@@ -9,10 +9,12 @@
       "EmailCompleteApp/1.0.0": {
         "dependencies": {
           "DocX": "5.0.0",
+          "DocumentFormat.OpenXml": "2.17.1",
           "MaterialDesignThemes": "5.2.1",
           "Microsoft.Office.Interop.Word": "15.0.4797.1004",
           "NPOI": "2.7.4",
           "NPOI.HWPFCore": "2.3.0.1",
+          "Open-Xml-PowerTools": "4.4.0",
           "Xceed.Words.NET": "5.1.25458.6676"
         },
         "runtime": {
@@ -27,10 +29,21 @@
           }
         }
       },
+      "DocumentFormat.OpenXml/2.17.1": {
+        "dependencies": {
+          "System.IO.Packaging": "4.7.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/DocumentFormat.OpenXml.dll": {
+            "assemblyVersion": "2.17.1.0",
+            "fileVersion": "2.17.1.0"
+          }
+        }
+      },
       "DocX/5.0.0": {
         "dependencies": {
           "SkiaSharp": "2.88.8",
-          "System.IO.Packaging": "4.5.0"
+          "System.IO.Packaging": "4.7.0"
         }
       },
       "Enums.NET/5.0.0": {
@@ -94,6 +107,11 @@
           }
         }
       },
+      "Microsoft.Win32.SystemEvents/4.5.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "5.0.0"
+        }
+      },
       "Microsoft.Xaml.Behaviors.Wpf/1.1.39": {
         "runtime": {
           "lib/net5.0-windows7.0/Microsoft.Xaml.Behaviors.dll": {
@@ -142,6 +160,18 @@
           "lib/netstandard2.0/NPOI.ScratchPad.HWPF.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Open-Xml-PowerTools/4.4.0": {
+        "dependencies": {
+          "DocumentFormat.OpenXml": "2.17.1",
+          "System.Drawing.Common": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/OpenXmlPowerTools.dll": {
+            "assemblyVersion": "4.4.0.0",
+            "fileVersion": "4.4.0.0"
           }
         }
       },
@@ -213,7 +243,13 @@
           }
         }
       },
-      "System.IO.Packaging/4.5.0": {},
+      "System.Drawing.Common/4.5.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "5.0.0",
+          "Microsoft.Win32.SystemEvents": "4.5.0"
+        }
+      },
+      "System.IO.Packaging/4.7.0": {},
       "System.Runtime.CompilerServices.Unsafe/5.0.0": {},
       "System.Security.Cryptography.Pkcs/8.0.1": {
         "runtime": {
@@ -249,7 +285,7 @@
       },
       "Xceed.Document.NET/5.1.25458.6676": {
         "dependencies": {
-          "System.IO.Packaging": "4.5.0",
+          "System.IO.Packaging": "4.7.0",
           "Xceed.Drawing.NET": "1.0.25458.6676",
           "Xceed.Pdf": "5.1.25458.6676"
         },
@@ -317,6 +353,13 @@
       "path": "bouncycastle.cryptography/2.4.0",
       "hashPath": "bouncycastle.cryptography.2.4.0.nupkg.sha512"
     },
+    "DocumentFormat.OpenXml/2.17.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Wgt1yrtqeTvlsgaDRcSbd5rsjTQytjNi4CW3a5VsoDcPVW9UbpheI7Ga1EhvwksT9jm7ey8vfkmeY//urMHwKQ==",
+      "path": "documentformat.openxml/2.17.1",
+      "hashPath": "documentformat.openxml.2.17.1.nupkg.sha512"
+    },
     "DocX/5.0.0": {
       "type": "package",
       "serviceable": true,
@@ -380,6 +423,13 @@
       "path": "microsoft.office.interop.word/15.0.4797.1004",
       "hashPath": "microsoft.office.interop.word.15.0.4797.1004.nupkg.sha512"
     },
+    "Microsoft.Win32.SystemEvents/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LuI1oG+24TUj1ZRQQjM5Ew73BKnZE5NZ/7eAdh1o8ST5dPhUnJvIkiIn2re3MwnkRy6ELRnvEbBxHP8uALKhJw==",
+      "path": "microsoft.win32.systemevents/4.5.0",
+      "hashPath": "microsoft.win32.systemevents.4.5.0.nupkg.sha512"
+    },
     "Microsoft.Xaml.Behaviors.Wpf/1.1.39": {
       "type": "package",
       "serviceable": true,
@@ -400,6 +450,13 @@
       "sha512": "sha512-2LQqMRO3kmXE0j74eBUDzaFbl9MO++4FqCbgSHgl+G5IGZ2L8w6tor1l8+2ns9KocnHcVGSgmQkcYPYJvWgGjg==",
       "path": "npoi.hwpfcore/2.3.0.1",
       "hashPath": "npoi.hwpfcore.2.3.0.1.nupkg.sha512"
+    },
+    "Open-Xml-PowerTools/4.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zdxzqgaByTx4UJpxA+SfLW4YpZwDkmPy9Vw2r+Y3RQQh0roRDyygvcalZR5C66kiRhpkbGV2azYKUNw6xVotpg==",
+      "path": "open-xml-powertools/4.4.0",
+      "hashPath": "open-xml-powertools.4.4.0.nupkg.sha512"
     },
     "SharpZipLib/1.4.2": {
       "type": "package",
@@ -443,12 +500,19 @@
       "path": "skiasharp.nativeassets.win32/2.88.8",
       "hashPath": "skiasharp.nativeassets.win32.2.88.8.nupkg.sha512"
     },
-    "System.IO.Packaging/4.5.0": {
+    "System.Drawing.Common/4.5.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-OjtW5pGp1E7KE3ontBrzy+nSFJCM6pcbVDdo3gg4DauTfdtZKdeKvMVlADF4fSY+OfXWUp4qCvOSxIltt37LbA==",
-      "path": "system.io.packaging/4.5.0",
-      "hashPath": "system.io.packaging.4.5.0.nupkg.sha512"
+      "sha512": "sha512-AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+      "path": "system.drawing.common/4.5.0",
+      "hashPath": "system.drawing.common.4.5.0.nupkg.sha512"
+    },
+    "System.IO.Packaging/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9VV4KAbgRQZ79iEoG40KIeZy38O30oWwewScAST879+oki8g/Wa2HXZQgrhDDxQM4GkP1PnRJll05NMiVPbYAw==",
+      "path": "system.io.packaging/4.7.0",
+      "hashPath": "system.io.packaging.4.7.0.nupkg.sha512"
     },
     "System.Runtime.CompilerServices.Unsafe/5.0.0": {
       "type": "package",
