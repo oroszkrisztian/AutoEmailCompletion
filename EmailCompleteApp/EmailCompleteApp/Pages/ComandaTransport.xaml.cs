@@ -1,15 +1,18 @@
+using DocumentFormat.OpenXml.Packaging;
+using Microsoft.Win32;
+using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using NPOI.XWPF.UserModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Word = Microsoft.Office.Interop.Word;
-using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
+using System.Windows.Threading;
 
 namespace EmailCompleteApp.Pages
 {
@@ -41,11 +44,11 @@ namespace EmailCompleteApp.Pages
             TextBox textBox = (TextBox)sender;
             if (!string.IsNullOrWhiteSpace(textBox.Text))
             {
-                textBox.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#20C997"));
+                textBox.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#20C997"));
             }
             else
             {
-                textBox.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#007BFF"));
+                textBox.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#007BFF"));
             }
         }
 
@@ -56,15 +59,15 @@ namespace EmailCompleteApp.Pages
             // Simple validation - just check if a date is selected
             if (datePicker.SelectedDate.HasValue)
             {
-                datePicker.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#20C997"));
+                datePicker.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#20C997"));
             }
             else
             {
-                datePicker.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#007BFF"));
+                datePicker.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#007BFF"));
             }
         }
 
-        private void OnSendClick(object sender, System.Windows.RoutedEventArgs e)
+        private async void OnSendClick(object sender, System.Windows.RoutedEventArgs e)
         {
             try
             {
@@ -88,55 +91,71 @@ namespace EmailCompleteApp.Pages
 
                 string projectDir = FindProjectDirWithDoc(projectRoot);
                 string docDir = Path.Combine(projectDir, "doc");
-                string comandaTemplatePath = Path.Combine(docDir, "Comanda_transport.docx");
-                string capacTemplatePath = Path.Combine(docDir, "CAPAC_dosar.docx");
+
+                // Use the pre-merged template
+                string mergedTemplatePath = Path.Combine(docDir, "comanda.docx");
 
                 string generatedDir = Path.Combine(docDir, "Generated");
                 Directory.CreateDirectory(generatedDir);
 
                 // Human-readable, Windows-safe timestamp (no colons)
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
-                var comandaReplacements = BuildComandaReplacements();
-                var capacReplacements = BuildCapacReplacements();
+                var replacements = BuildCombinedReplacements();
 
-                string comandaOutputPath = Path.Combine(generatedDir, $"Comanda transport - {timestamp}.docx");
-                string capacOutputPath = Path.Combine(generatedDir, $"CAPAC dosar - {timestamp}.docx");
-
-                // Check templates exist
-                if (!File.Exists(comandaTemplatePath))
-                {
-                    MessageBox.Show($"No template found. Add 'Comanda_transport.docx' under: {docDir}",
-                                  "Template Missing", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                if (!File.Exists(capacTemplatePath))
-                {
-                    MessageBox.Show($"No template found. Add 'CAPAC_dosar.docx' under: {docDir}",
-                                  "Template Missing", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // Generate both documents
-                GenerateWordDocumentFromTemplate(comandaTemplatePath, comandaOutputPath, comandaReplacements);
-                GenerateWordDocumentFromTemplate(capacTemplatePath, capacOutputPath, capacReplacements);
-
-                // Merge into single DOCX (preserving formatting) without requiring Word
                 string mergedOutputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {timestamp}.docx");
+
+                // Check template exists
+                if (!File.Exists(mergedTemplatePath))
+                {
+                    MessageBox.Show($"No template found. Add 'comanda.docx' under: {docDir}",
+                                  "Template Missing", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Generate the document from the pre-merged template
+                GenerateWordDocumentFromTemplate(mergedTemplatePath, mergedOutputPath, replacements);
+
+                // Show loading dialog while preparing email
+                var ownerWindow = Window.GetWindow(this);
+                var loading = new LoadingWindow();
+                if (ownerWindow != null) loading.Owner = ownerWindow;
+                loading.Show();
+                await Task.Delay(50); // allow UI to render
+
+                // Create Outlook email with DOCX attached (if Outlook available)
+                bool emailCreated = false;
                 try
                 {
-                    MergeDocxWithOpenXmlPowerTools(capacOutputPath, comandaOutputPath, mergedOutputPath);
+                    emailCreated = await Task.Run(() => CreateOutlookEmailWithAttachment(mergedOutputPath));
                 }
-                catch (Exception mEx)
+                catch (Exception mailEx)
                 {
-                    Debug.WriteLine($"Merging with Word failed: {mEx.ToString()}");
-                    MessageBox.Show($"Generated files, but failed to merge automatically.\n\nError: {mEx.Message}\n\n" +
-                                    $"CAPAC: {capacOutputPath}\nComanda: {comandaOutputPath}",
-                                    "Partial Success", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    Debug.WriteLine($"Email creation failed: {mailEx}");
+                    emailCreated = false;
                 }
 
-                MessageBox.Show($"Generated and merged successfully.\n\nMerged file: {mergedOutputPath}",
-                                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                try { loading.Close(); } catch { }
+
+                if (emailCreated)
+                {
+                    MessageBox.Show($"DOCX generated and email draft opened.\n\nDOCX: {mergedOutputPath}",
+                                    "Ready to Send", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // Open the document directly if email creation failed
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo(mergedOutputPath) { UseShellExecute = true });
+                        MessageBox.Show($"DOCX generated.\n\nDOCX: {mergedOutputPath}\n\nOutlook not found or could not open email. The document has been opened directly.",
+                                        "Success (Manual Email)", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception openEx)
+                    {
+                        MessageBox.Show($"DOCX generated but could not be opened.\n\nDOCX: {mergedOutputPath}\nError: {openEx.Message}",
+                                        "Success (Manual Open Failed)", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -145,7 +164,7 @@ namespace EmailCompleteApp.Pages
             }
         }
 
-        private Dictionary<string, string> BuildComandaReplacements()
+        private Dictionary<string, string> BuildCombinedReplacements()
         {
             string datePickupSlash = DatePickup.SelectedDate.HasValue ? DatePickup.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
             string dateDeliverSlash = DateDeliver.SelectedDate.HasValue ? DateDeliver.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
@@ -154,9 +173,15 @@ namespace EmailCompleteApp.Pages
             string datePickup = DatePickup.SelectedDate.HasValue ? DatePickup.SelectedDate.Value.ToString("dd,MM,yyyy") : string.Empty;
             string dateDeliver = DateDeliver.SelectedDate.HasValue ? DateDeliver.SelectedDate.Value.ToString("dd,MM,yyyy") : string.Empty;
 
+            string dataCapac = CapacDataDatePicker.SelectedDate.HasValue ? CapacDataDatePicker.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
+
+            string Get(string? s) => s?.Trim() ?? string.Empty;
+            string qty = Get(CapacCantitateTextBox.Text);
+            string qtyWithUnit = string.IsNullOrEmpty(qty) ? string.Empty : $"{qty} KG";
+
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                // Exact placeholders from the template document
+                // Comanda Transport placeholders
                 { "nr. Tank", nrTank.Text?.Trim() ?? string.Empty },
                 { "21,11,2023", datePickup },
                 { "24,11,2023", dateDeliver },
@@ -166,7 +191,18 @@ namespace EmailCompleteApp.Pages
                 { "PREŢ NEGOCIAT:", $"PREŢ NEGOCIAT: {BuildPrice()}" },
                 { "maxim 45 zile", BuildMaxDays() },
                 
-                // Additional fallback general tokens if they also exist in the doc
+                // CAPAC placeholders
+                { "CLIENT:", $"CLIENT: {Get(CapacClientTextBox.Text)}" },
+                { "RUTA:", $"RUTA: {Get(CapacRutaTextBox.Text)}" },
+                { "DATA:", $"DATA: {dataCapac}" },
+                { "NUMAR INMATRICULARE:", $"NUMAR INMATRICULARE: {Get(CapacNumarInmatriculareTextBox.Text)}" },
+                { "TRANSPORTATOR:", $"TRANSPORTATOR: {Get(CapacTransportatorTextBox.Text)}" },
+                { "PRET:", $"PRET: {BuildPrice()}" },
+                { "Cantitate incarcata:", $"Cantitate incarcata: {qtyWithUnit}" },
+                { "Factura client:", $"Factura client: {Get(CapacFacturaClientTextBox.Text)}" },
+                { "Factura caraus:", $"Factura caraus: {Get(CapacFacturaCarausTextBox.Text)}" },
+                
+                // Additional fallback general tokens
                 { "{{DatePickup}}", datePickupSlash },
                 { "{{DateDeliver}}", dateDeliverSlash },
                 { "{{Today}}", DateTime.Now.ToString("dd/MM/yyyy") },
@@ -176,30 +212,6 @@ namespace EmailCompleteApp.Pages
                 { "{{Address2}}", Address2TextBox.Text?.Trim() ?? string.Empty },
                 { "{{Price}}", BuildPrice() },
                 { "{{MaxDays}}", BuildMaxDays() }
-            };
-
-            return map;
-        }
-
-        private Dictionary<string, string> BuildCapacReplacements()
-        {
-            string dataCapac = CapacDataDatePicker.SelectedDate.HasValue ? CapacDataDatePicker.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
-
-            string Get(string? s) => s?.Trim() ?? string.Empty;
-            string qty = Get(CapacCantitateTextBox.Text);
-            string qtyWithUnit = string.IsNullOrEmpty(qty) ? string.Empty : $"{qty} KG";
-
-            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "CLIENT:", $"CLIENT: {Get(CapacClientTextBox.Text)}" },
-                { "RUTA:", $"RUTA: {Get(CapacRutaTextBox.Text)}" },
-                { "DATA:", $"DATA: {dataCapac}" },
-                { "NUMAR INMATRICULARE:", $"NUMAR INMATRICULARE: {Get(CapacNumarInmatriculareTextBox.Text)}" },
-                { "TRANSPORTATOR:", $"TRANSPORTATOR: {Get(CapacTransportatorTextBox.Text)}" },
-                { "PRET:", $"PRET: {BuildPrice()}" },
-                { "Cantitate incarcata:", $"Cantitate incarcata: {qtyWithUnit}" },
-                { "Factura client:", $"Factura client: {Get(CapacFacturaClientTextBox.Text)}" },
-                { "Factura caraus:", $"Factura caraus: {Get(CapacFacturaCarausTextBox.Text)}" }
             };
 
             return map;
@@ -444,136 +456,6 @@ namespace EmailCompleteApp.Pages
             }
         }
 
-        private static void MergeDocxWithWord(string firstDocPath, string secondDocPath, string mergedOutputPath)
-        {
-            if (!File.Exists(firstDocPath)) throw new FileNotFoundException("First document not found", firstDocPath);
-            if (!File.Exists(secondDocPath)) throw new FileNotFoundException("Second document not found", secondDocPath);
-
-            Word.Application wordApp = null;
-            Word.Document mergedDoc = null;
-            object missing = Type.Missing;
-
-            try
-            {
-                // Check if Word is installed
-                try
-                {
-                    wordApp = new Word.Application();
-                }
-                catch (COMException ex) when (ex.HResult == unchecked((int)0x80040154))
-                {
-                    throw new InvalidOperationException("Microsoft Word is not installed. Cannot merge documents.");
-                }
-
-                wordApp.Visible = false;
-                wordApp.ScreenUpdating = false;
-                wordApp.DisplayAlerts = Word.WdAlertLevel.wdAlertsNone;
-
-                // Create a new document
-                mergedDoc = wordApp.Documents.Add(ref missing, ref missing, ref missing, ref missing);
-
-                // Insert first document
-                Word.Range range = mergedDoc.Content;
-                range.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-                range.InsertFile(firstDocPath, ref missing, ref missing, ref missing, ref missing);
-
-                // Insert page break
-                range.InsertBreak(Word.WdBreakType.wdPageBreak);
-
-                // Insert second document
-                range.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-                range.InsertFile(secondDocPath, ref missing, ref missing, ref missing, ref missing);
-
-                // Save merged document
-                mergedDoc.SaveAs2(mergedOutputPath, FileFormat: Word.WdSaveFormat.wdFormatXMLDocument);
-            }
-            finally
-            {
-                // Cleanup COM objects
-                if (mergedDoc != null)
-                {
-                    mergedDoc.Close(ref missing, ref missing, ref missing);
-                    Marshal.ReleaseComObject(mergedDoc);
-                }
-                if (wordApp != null)
-                {
-                    wordApp.Quit(ref missing, ref missing, ref missing);
-                    Marshal.ReleaseComObject(wordApp);
-                }
-
-                // Force garbage collection to clean up remaining COM references
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-        }
-
-        private static void MergeDocxWithOpenXmlPowerTools(string firstDocPath, string secondDocPath, string mergedOutputPath)
-        {
-            if (!File.Exists(firstDocPath)) throw new FileNotFoundException("First document not found", firstDocPath);
-            if (!File.Exists(secondDocPath)) throw new FileNotFoundException("Second document not found", secondDocPath);
-
-            var sources = new List<Source>()
-            {
-                new Source(new WmlDocument(firstDocPath), false),
-                new Source(new WmlDocument(secondDocPath), true) 
-            };
-
-            var merged = DocumentBuilder.BuildDocument(sources);
-            merged.SaveAs(mergedOutputPath);
-        }
-
-        private static string ConvertDocxToPdfWithWord(string docxPath)
-        {
-            if (!File.Exists(docxPath))
-                throw new FileNotFoundException("DOCX not found", docxPath);
-
-            string pdfPath = Path.ChangeExtension(docxPath, ".pdf");
-
-            Word.Application? wordApp = null;
-            Word.Document? doc = null;
-            try
-            {
-                wordApp = new Word.Application { Visible = false, ScreenUpdating = false, DisplayAlerts = Word.WdAlertLevel.wdAlertsNone };
-                object readOnly = true;
-                object isVisible = false;
-                object missing = Type.Missing;
-                object fileName = docxPath;
-                doc = wordApp.Documents.Open(ref fileName, ReadOnly: ref readOnly, Visible: ref isVisible);
-
-                object outputFileName = pdfPath;
-                var exportFormat = Word.WdExportFormat.wdExportFormatPDF;
-                doc.ExportAsFixedFormat(OutputFileName: pdfPath,
-                                        ExportFormat: exportFormat,
-                                        OpenAfterExport: false,
-                                        OptimizeFor: Word.WdExportOptimizeFor.wdExportOptimizeForPrint,
-                                        Range: Word.WdExportRange.wdExportAllDocument,
-                                        From: 0,
-                                        To: 0,
-                                        Item: Word.WdExportItem.wdExportDocumentContent,
-                                        IncludeDocProps: true,
-                                        KeepIRM: true,
-                                        CreateBookmarks: Word.WdExportCreateBookmarks.wdExportCreateNoBookmarks,
-                                        DocStructureTags: true,
-                                        BitmapMissingFonts: true,
-                                        UseISO19005_1: false);
-
-                return pdfPath;
-            }
-            finally
-            {
-                if (doc != null)
-                {
-                    try { doc.Close(SaveChanges: false); } catch { }
-                    Marshal.FinalReleaseComObject(doc);
-                }
-                if (wordApp != null)
-                {
-                    try { wordApp.Quit(SaveChanges: false); } catch { }
-                    Marshal.FinalReleaseComObject(wordApp);
-                }
-            }
-        }
-
         private static bool CreateOutlookEmailWithAttachment(string attachmentPath)
         {
             if (!File.Exists(attachmentPath))
@@ -600,7 +482,7 @@ namespace EmailCompleteApp.Pages
 
                 var mailType = mailItem.GetType();
                 mailType.GetProperty("Subject")?.SetValue(mailItem, "Comanda transport");
-                mailType.GetProperty("Body")?.SetValue(mailItem, "Va rugam gasiti atasat documentul in format PDF.");
+                mailType.GetProperty("Body")?.SetValue(mailItem, "Va rugam gasiti atasat documentul in format DOCX.");
 
                 var attachments = mailType.GetProperty("Attachments")?.GetValue(mailItem);
                 var attachmentsType = attachments?.GetType();

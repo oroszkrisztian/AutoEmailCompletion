@@ -56,7 +56,11 @@
             },
             "DocumentFormat.OpenXml": {
               "target": "Package",
-              "version": "[2.17.1, )"
+              "version": "[3.3.0, )"
+            },
+            "HtmlRenderer.PdfSharp": {
+              "target": "Package",
+              "version": "[1.5.0.6, )"
             },
             "MaterialDesignThemes": {
               "target": "Package",
@@ -78,9 +82,21 @@
               "target": "Package",
               "version": "[4.4.0, )"
             },
+            "PdfSharp": {
+              "target": "Package",
+              "version": "[6.2.1, )"
+            },
             "Xceed.Words.NET": {
               "target": "Package",
               "version": "[5.1.25458.6676, )"
+            },
+            "iTextSharp": {
+              "target": "Package",
+              "version": "[5.5.13.4, )"
+            },
+            "itext": {
+              "target": "Package",
+              "version": "[9.3.0, )"
             }
           },
           "imports": [
