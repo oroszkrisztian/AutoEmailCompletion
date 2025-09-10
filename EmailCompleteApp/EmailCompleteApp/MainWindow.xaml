@@ -27,7 +27,7 @@
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <Grid>
                     <TextBlock Text="Email Completion App"
-                               HorizontalAlignment="Center"
+                               HorizontalAlignment="Left"
                                VerticalAlignment="Center"
                                FontSize="20"
                                FontWeight="SemiBold"
@@ -118,27 +118,10 @@
                         Background="#1E1E2F"
                         CornerRadius="0,0,0,20">
                     <StackPanel>
-                        <Button x:Name="EmailType1Button"
-                                Content="Email type 1"
-                                Margin="10"
-                                Background="White"
-                                Foreground="#272537"
-                                Click="EmailType1Button_Click"
-                                MouseEnter="EmailType1Button_MouseEnter"
-                                MouseLeave="EmailType1Button_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" 
-                                                        VerticalAlignment="Center"
-                                                        TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+
+
                         <Button x:Name="EmailType2Button"
-                                Content="Email type 2"
+                                Content="Email type 1"
                                 Margin="10"
                                 Background="White"
                                 Foreground="#272537"
@@ -150,20 +133,21 @@
                                     <Border Background="{TemplateBinding Background}"
                                             CornerRadius="10">
                                         <ContentPresenter HorizontalAlignment="Center" 
-                                                        VerticalAlignment="Center"
-                                                        TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                                          VerticalAlignment="Center"
+                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
                                     </Border>
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <Button x:Name="EmailType3Button"
-                                Content="Email type 3"
+
+                        <Button x:Name="ComandaTransportButton"
+                                Content="Comanda Transport"
                                 Margin="10"
                                 Background="White"
                                 Foreground="#272537"
-                                Click="EmailType3Button_Click"
-                                MouseEnter="EmailType3Button_MouseEnter"
-                                MouseLeave="EmailType3Button_MouseLeave">
+                                Click="ComandaTransport_Click"
+                                MouseEnter="ComandaTransportButton_MouseEnter"
+                                MouseLeave="ComandaTransport_MouseLeave">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}"
@@ -175,6 +159,9 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
+
+                        
+
                     </StackPanel>
                 </Border>
 
@@ -184,7 +171,7 @@
                         CornerRadius="0,0,20,0">
                     <ContentControl x:Name="MainContentArea">
                         <Grid>
-                            <TextBlock Text="Welcome to the Email Completion App!"
+                            <TextBlock Text="Chose email to complete from sidebar!"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        FontSize="24"
