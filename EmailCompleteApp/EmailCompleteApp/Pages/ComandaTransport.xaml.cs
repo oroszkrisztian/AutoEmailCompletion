@@ -22,21 +22,29 @@ namespace EmailCompleteApp.Pages
         {
             InitializeComponent();
 
-            // Set default dates
-            DatePickup.SelectedDate = DateTime.Today;
-            DateDeliver.SelectedDate = DateTime.Today.AddDays(1);
-            CapacDataDatePicker.SelectedDate = DateTime.Today;
+            // Set default values for ComboBoxes (if present)
+            MonedaComboBox.SelectedIndex = 0;
+            TipComboBox.SelectedIndex = 0;
+            if (TransportatorMonedaComboBox != null) TransportatorMonedaComboBox.SelectedIndex = 0;
+            if (TransportatorTipComboBox != null) TransportatorTipComboBox.SelectedIndex = 0;
+            if (TipAdrComboBox != null) TipAdrComboBox.SelectedIndex = 0;
+
+            // Set default dates (if present)
+            if (DataIncarcareDatePicker != null) DataIncarcareDatePicker.SelectedDate = DateTime.Today;
+            if (DataDescarcareDatePicker != null) DataDescarcareDatePicker.SelectedDate = DateTime.Today.AddDays(1);
 
             // Handle text box validation
-            var textBoxes = new[] { nrTank, DescriptionTextBox, Address1TextBox, Address2TextBox, MaxDaysTextBox, CapacClientTextBox, CapacRutaTextBox, CapacNumarInmatriculareTextBox, CapacTransportatorTextBox, CapacPretTextBox, CapacCurrencyTextBox, CapacCantitateTextBox, CapacFacturaClientTextBox, CapacFacturaCarausTextBox };
+            var textBoxes = new[] {
+                NumarComandaTextBox, ClientTextBox, TarifTextBox, PrimitTextBox,
+                TransportatorTextBox, TransportatorTarifTextBox, OferitTextBox,
+                ProdusTextBox, CantitateTextBox, ClasaTextBox, UMTextBox,
+                MaxDaysTextBox, NumarInmatriculareTextBox, LocatieIncarcareTextBox, LocatieDescarcareTextBox
+            };
             foreach (var textBox in textBoxes)
             {
-                textBox.TextChanged += Input_TextChanged;
+                if (textBox != null)
+                    textBox.TextChanged += Input_TextChanged;
             }
-
-            // Handle date picker validation
-            DatePickup.SelectedDateChanged += DatePicker_SelectedDateChanged;
-            DateDeliver.SelectedDateChanged += DatePicker_SelectedDateChanged;
         }
 
         private void Input_TextChanged(object sender, TextChangedEventArgs e)
@@ -49,21 +57,6 @@ namespace EmailCompleteApp.Pages
             else
             {
                 textBox.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#007BFF"));
-            }
-        }
-
-        private void DatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
-        {
-            DatePicker datePicker = (DatePicker)sender;
-
-            // Simple validation - just check if a date is selected
-            if (datePicker.SelectedDate.HasValue)
-            {
-                datePicker.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#20C997"));
-            }
-            else
-            {
-                datePicker.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#007BFF"));
             }
         }
 
@@ -166,69 +159,24 @@ namespace EmailCompleteApp.Pages
 
         private Dictionary<string, string> BuildCombinedReplacements()
         {
-            string datePickupSlash = DatePickup.SelectedDate.HasValue ? DatePickup.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
-            string dateDeliverSlash = DateDeliver.SelectedDate.HasValue ? DateDeliver.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
-
-            // Template expects commas as separators per example: 21,11,2023
-            string datePickup = DatePickup.SelectedDate.HasValue ? DatePickup.SelectedDate.Value.ToString("dd,MM,yyyy") : string.Empty;
-            string dateDeliver = DateDeliver.SelectedDate.HasValue ? DateDeliver.SelectedDate.Value.ToString("dd,MM,yyyy") : string.Empty;
-
-            string dataCapac = CapacDataDatePicker.SelectedDate.HasValue ? CapacDataDatePicker.SelectedDate.Value.ToString("dd/MM/yyyy") : string.Empty;
-
             string Get(string? s) => s?.Trim() ?? string.Empty;
-            string qty = Get(CapacCantitateTextBox.Text);
-            string qtyWithUnit = string.IsNullOrEmpty(qty) ? string.Empty : $"{qty} KG";
 
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                // Comanda Transport placeholders
-                { "nr. Tank", nrTank.Text?.Trim() ?? string.Empty },
-                { "21,11,2023", datePickup },
-                { "24,11,2023", dateDeliver },
-                { "Adresa de incarcare", Address1TextBox.Text?.Trim() ?? string.Empty },
-                { "Adresa de descarcare", Address2TextBox.Text?.Trim() ?? string.Empty },
-                { "Descriere marfa:", DescriptionTextBox.Text?.Trim() ?? string.Empty},
-                { "PREŢ NEGOCIAT:", $"PREŢ NEGOCIAT: {BuildPrice()}" },
-                { "maxim 45 zile", BuildMaxDays() },
-                
-                // CAPAC placeholders
-                { "CLIENT:", $"CLIENT: {Get(CapacClientTextBox.Text)}" },
-                { "RUTA:", $"RUTA: {Get(CapacRutaTextBox.Text)}" },
-                { "DATA:", $"DATA: {dataCapac}" },
-                { "NUMAR INMATRICULARE:", $"NUMAR INMATRICULARE: {Get(CapacNumarInmatriculareTextBox.Text)}" },
-                { "TRANSPORTATOR:", $"TRANSPORTATOR: {Get(CapacTransportatorTextBox.Text)}" },
-                { "PRET:", $"PRET: {BuildPrice()}" },
-                { "Cantitate incarcata:", $"Cantitate incarcata: {qtyWithUnit}" },
-                { "Factura client:", $"Factura client: {Get(CapacFacturaClientTextBox.Text)}" },
-                { "Factura caraus:", $"Factura caraus: {Get(CapacFacturaCarausTextBox.Text)}" },
-                
-                // Additional fallback general tokens
-                { "{{DatePickup}}", datePickupSlash },
-                { "{{DateDeliver}}", dateDeliverSlash },
-                { "{{Today}}", DateTime.Now.ToString("dd/MM/yyyy") },
-                { "{{NrTank}}", nrTank.Text?.Trim() ?? string.Empty },
-                { "{{Description}}", DescriptionTextBox.Text?.Trim() ?? string.Empty },
-                { "{{Address1}}", Address1TextBox.Text?.Trim() ?? string.Empty },
-                { "{{Address2}}", Address2TextBox.Text?.Trim() ?? string.Empty },
-                { "{{Price}}", BuildPrice() },
-                { "{{MaxDays}}", BuildMaxDays() }
+                { "Numar Comanda", NumarComandaTextBox.Text?.Trim() ?? string.Empty },
+                { "Client", ClientTextBox.Text?.Trim() ?? string.Empty },
+                { "Tarif", TarifTextBox.Text?.Trim() ?? string.Empty },
+                { "Primit", PrimitTextBox.Text?.Trim() ?? string.Empty },
+                { "Moneda", (MonedaComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty },
+                { "Tip", (TipComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty }
             };
 
             return map;
         }
 
-        private string BuildPrice()
-        {
-            string price = CapacPretTextBox.Text?.Trim() ?? string.Empty;
-            string currency = CapacCurrencyTextBox.Text?.Trim() ?? string.Empty;
-            string combined = (price + " " + currency).Trim();
-            return string.IsNullOrEmpty(combined) ? string.Empty : combined;
-        }
-
         private string BuildMaxDays()
         {
-            string maxDays = MaxDaysTextBox.Text?.Trim() ?? string.Empty;
-            return string.IsNullOrEmpty(maxDays) ? string.Empty : $"maxim {maxDays} zile";
+            return string.Empty;
         }
 
         private static void GenerateWordDocumentFromTemplate(string templatePath, string outputPath, Dictionary<string, string> replacements)
