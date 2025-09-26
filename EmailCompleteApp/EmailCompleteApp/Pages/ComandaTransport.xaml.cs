@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml.Packaging;
 using Microsoft.Win32;
 using NPOI.XWPF.UserModel;
 using System;
@@ -22,7 +21,7 @@ namespace EmailCompleteApp.Pages
         {
             InitializeComponent();
 
-            // Set default values for ComboBoxes (if present)
+            
             MonedaComboBox.SelectedIndex = 0;
             TipComboBox.SelectedIndex = 0;
             if (TransportatorMonedaComboBox != null) TransportatorMonedaComboBox.SelectedIndex = 0;
@@ -40,25 +39,10 @@ namespace EmailCompleteApp.Pages
                 ProdusTextBox, CantitateTextBox, ClasaTextBox, UMTextBox,
                 MaxDaysTextBox, NumarInmatriculareTextBox, LocatieIncarcareTextBox, LocatieDescarcareTextBox
             };
-            foreach (var textBox in textBoxes)
-            {
-                if (textBox != null)
-                    textBox.TextChanged += Input_TextChanged;
-            }
+            
         }
 
-        private void Input_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            TextBox textBox = (TextBox)sender;
-            if (!string.IsNullOrWhiteSpace(textBox.Text))
-            {
-                textBox.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#20C997"));
-            }
-            else
-            {
-                textBox.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#007BFF"));
-            }
-        }
+       
 
         private async void OnSendClick(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -259,10 +243,8 @@ namespace EmailCompleteApp.Pages
 
         private static void ReplaceInParagraph(XWPFParagraph paragraph, Dictionary<string, string> replacements)
         {
-            // Capture original paragraph text before any run edits
             string originalParagraphText = paragraph.Text;
 
-            // First try run-level replacements (preserves most formatting when placeholders are not split)
             var runs = paragraph.Runs;
             bool anyRunChanged = false;
             if (runs != null)
@@ -282,14 +264,12 @@ namespace EmailCompleteApp.Pages
                 }
             }
 
-            // If placeholders are split across runs, fall back to paragraph-level rebuild
-            // Only do this if no run-level change occurred to avoid double application
+           
             if (!anyRunChanged)
             {
                 string newParaText = ReplaceAll(originalParagraphText, replacements);
                 if (!string.Equals(originalParagraphText, newParaText, StringComparison.Ordinal))
                 {
-                    // Remove all runs and set a single run with replaced text
                     for (int i = paragraph.Runs.Count - 1; i >= 0; i--)
                     {
                         paragraph.RemoveRun(i);
@@ -412,7 +392,7 @@ namespace EmailCompleteApp.Pages
             Type? outlookType = Type.GetTypeFromProgID("Outlook.Application");
             if (outlookType == null)
             {
-                return false; // Outlook not installed
+                return false; 
             }
 
             object? outlookApp = null;

@@ -24,15 +24,15 @@ namespace EmailCompleteApp
             this.Close();
         }
 
-        private void EmailType2Button_Click(object sender, RoutedEventArgs e)
+        private void ClientButton_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to Email Type 1 page
-            MainContentArea.Content = new EmailType2Page();
-            
+            // Switch to Cleint page
+            MainContentArea.Content = new ClientPage();
+
             // Update button styles to show active state
             ResetButtonStyles();
-            EmailType2Button.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
-            EmailType2Button.Foreground = Brushes.White;
+            ClientButtonPage.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
+            ClientButtonPage.Foreground = Brushes.White;
         }
 
         private void ComandaTransport_Click(object sender, RoutedEventArgs e)
@@ -49,8 +49,8 @@ namespace EmailCompleteApp
         private void ResetButtonStyles()
         {
             // Reset all buttons to default style
-            EmailType2Button.Background = Brushes.White;
-            EmailType2Button.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+            ClientButtonPage.Background = Brushes.White;
+            ClientButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
 
             ComandaTransportButton.Background = Brushes.White;
             ComandaTransportButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
@@ -59,12 +59,12 @@ namespace EmailCompleteApp
         }
 
         // Mouse Enter Event Handlers
-        private void EmailType2Button_MouseEnter(object sender, MouseEventArgs e)
+        private void ClientButton_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (EmailType2Button.Background != new SolidColorBrush(Color.FromRgb(100, 150, 255)))
+            if (ClientButtonPage.Background != new SolidColorBrush(Color.FromRgb(100, 150, 255)))
             {
-                EmailType2Button.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
-                EmailType2Button.Foreground = Brushes.White;
+                ClientButtonPage.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
+                ClientButtonPage.Foreground = Brushes.White;
             }
         }
 
@@ -79,11 +79,10 @@ namespace EmailCompleteApp
 
 
         // Mouse Leave Event Handlers
-        private void EmailType2Button_MouseLeave(object sender, MouseEventArgs e)
+        private void ClientButton_MouseLeave(object sender, MouseEventArgs e)
         {
-            // Only reset if this button is not the currently selected one
-            // Check if the content area shows EmailType1Page
-            if (MainContentArea.Content is EmailType2Page)
+           
+            if (MainContentArea.Content is ClientPage)
             {
                 // Keep selected state - do nothing
                 return;
@@ -91,8 +90,8 @@ namespace EmailCompleteApp
             else
             {
                 // Reset to default state
-                EmailType2Button.Background = Brushes.White;
-                EmailType2Button.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+                ClientButtonPage.Background = Brushes.White;
+                ClientButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
             }
         }
 

@@ -120,14 +120,14 @@
                     <StackPanel>
 
 
-                        <Button x:Name="EmailType2Button"
-                                Content="Email type 1"
+                        <Button x:Name="ClientButtonPage"
+                                Content="Client"
                                 Margin="10"
                                 Background="White"
                                 Foreground="#272537"
-                                Click="EmailType2Button_Click"
-                                MouseEnter="EmailType2Button_MouseEnter"
-                                MouseLeave="EmailType2Button_MouseLeave">
+                                Click="ClientButton_Click"
+                                MouseEnter="ClientButton_MouseEnter"
+                                MouseLeave="ClientButton_MouseLeave">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}"
