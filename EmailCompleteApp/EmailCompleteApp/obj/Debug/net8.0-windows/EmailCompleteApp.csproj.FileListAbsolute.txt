@@ -100,3 +100,5 @@ E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-window
 E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\EmailCompleteApp.pdb
 E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\EmailCompleteApp.genruntimeconfig.cache
 E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\ref\EmailCompleteApp.dll
+E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\Pages\LocationPage.g.cs
+E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\Pages\LocationPage.baml

@@ -1,0 +1,213 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using EmailCompleteApp.Models;
+using ClosedXML.Excel;
+using System.IO;
+
+namespace EmailCompleteApp.Pages
+{
+    public partial class ClientPage : UserControl
+    {
+        private ComandaTransport comandaTransport = new ComandaTransport();
+        public ClientPage()
+        {
+            InitializeComponent();
+            // Title is bound in XAML to the selected tab's Header.
+        }
+
+        private void InsertClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var excelPath = GetDatabaseExcelPath();
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(excelPath)!);
+
+                bool isClientTab = ModeTabControl?.SelectedIndex == 0; // 0: Client, 1: Transportator
+
+                if (isClientTab)
+                {
+                    if (string.IsNullOrWhiteSpace(ClientName.Text))
+                    {
+                        MessageBox.Show("Name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        ClientName.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(ClientAddress.Text))
+                    {
+                        MessageBox.Show("Address is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        ClientAddress.Focus();
+                        return;
+                    }
+
+                    Client client = new Client(
+                        ClientName.Text,
+                        ClientAddress.Text,
+                        ClientBank.Text,
+                        ClientIban.Text,
+                        ClientVatNumber.Text,
+                        ClientCameraDeComert.Text,
+                        ClientTermenPlata.Text
+                    );
+
+                    AppendToExcel(excelPath, "Clients", client);
+                    MessageBox.Show($"Client inserted to Excel:\n{excelPath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    ClientName.Text = string.Empty;
+                    ClientAddress.Text = string.Empty;
+                    ClientBank.Text = string.Empty;
+                    ClientIban.Text = string.Empty;
+                    ClientVatNumber.Text = string.Empty;
+                    ClientCameraDeComert.Text = string.Empty;
+                    ClientTermenPlata.Text = string.Empty;
+                }
+                else // Transportator
+                {
+                    if (string.IsNullOrWhiteSpace(TransportatorName.Text))
+                    {
+                        MessageBox.Show("Name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TransportatorName.Focus();
+                        return;
+                    }
+                    if (string.IsNullOrWhiteSpace(TransportatorAdresa.Text))
+                    {
+                        MessageBox.Show("Address is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TransportatorAdresa.Focus();
+                        return;
+                    }
+                    // For simplicity, use Client model for transportator as before
+                    Client transportator = new Client(
+                        TransportatorName.Text,
+                        TransportatorAdresa.Text,
+                        TransportatorContBancar.Text,
+                        TransportatorIban.Text,
+                        TransportatorVatNumber.Text,
+                        TransportatorCameraDeComert.Text,
+                        TransportatorTermenPlata.Text
+                    );
+
+                    AppendToExcel(excelPath, "Transportators", transportator);
+                    MessageBox.Show($"Transportator inserted to Excel:\n{excelPath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    TransportatorName.Text = string.Empty;
+                    TransportatorAdresa.Text = string.Empty;
+                    TransportatorContBancar.Text =string.Empty;
+                    TransportatorIban.Text= string.Empty;
+                    TransportatorVatNumber.Text= string.Empty;
+                    TransportatorCameraDeComert.Text = string.Empty;
+                    TransportatorTermenPlata.Text = string.Empty;
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (IOException ioEx)
+            {
+                MessageBox.Show($"Could not write the Excel file. It may be open in another program.\nDetails: {ioEx.Message}", "File In Use", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // Always use database.xlsx in the doc folder (or fallback to Documents)
+        private static string GetDatabaseExcelPath()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            string? current = baseDir;
+            for (int i = 0; i < 6 && current != null; i++)
+            {
+                string docDir = System.IO.Path.Combine(current, "doc");
+                if (Directory.Exists(docDir))
+                {
+                    return System.IO.Path.Combine(docDir, "database.xlsx");
+                }
+                current = Directory.GetParent(current)?.FullName;
+            }
+
+            var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            return System.IO.Path.Combine(docs, "AutoEmailCompletion", "database.xlsx");
+        }
+
+        private static void EnsureHeader(IXLWorksheet ws)
+        {
+            ws.Cell(1, 1).Value = "Name";
+            ws.Cell(1, 2).Value = "Address";
+            ws.Cell(1, 3).Value = "Bank";
+            ws.Cell(1, 4).Value = "IBAN";
+            ws.Cell(1, 5).Value = "VAT";
+            ws.Cell(1, 6).Value = "Camera de Comert";
+            ws.Cell(1, 7).Value = "Termenul de plata";
+            ws.Cell(1, 8).Value = "CreatedAt";
+            ws.Row(1).Style.Font.Bold = true;
+        }
+
+        private static void AppendToExcel(string filePath, string sheetName, Client client)
+        {
+            if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
+            {
+                using var initWb = new XLWorkbook();
+                var initWs = initWb.Worksheets.Add(sheetName);
+                EnsureHeader(initWs);
+                initWs.Columns().AdjustToContents();
+                initWb.SaveAs(filePath);
+            }
+
+            XLWorkbook? wb = null;
+            try
+            {
+                wb = new XLWorkbook(filePath);
+            }
+            catch
+            {
+                using var recreate = new XLWorkbook();
+                var wsNew = recreate.Worksheets.Add(sheetName);
+                EnsureHeader(wsNew);
+                recreate.SaveAs(filePath);
+                wb = new XLWorkbook(filePath);
+            }
+
+            using (wb)
+            {
+                var wsExisting = wb.Worksheets.FirstOrDefault(s => s.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase))
+                               ?? wb.Worksheets.Add(sheetName);
+
+                // Ensure header row exists
+                if (wsExisting.Cell(1, 1).GetString().Length == 0)
+                {
+                    EnsureHeader(wsExisting);
+                }
+
+                var lastRow = wsExisting.LastRowUsed()?.RowNumber() ?? 1;
+                var targetRow = lastRow >= 1 ? lastRow + 1 : 2;
+
+                wsExisting.Cell(targetRow, 1).Value = client.Name;
+                wsExisting.Cell(targetRow, 2).Value = client.Address;
+                wsExisting.Cell(targetRow, 3).Value = client.Bank;
+                wsExisting.Cell(targetRow, 4).Value = client.IBAN;
+                wsExisting.Cell(targetRow, 5).Value = client.VATNumber;
+                wsExisting.Cell(targetRow, 6).Value = client.CameraDeComert;
+                wsExisting.Cell(targetRow, 7).Value = client.TermenulDePlata;
+                wsExisting.Cell(targetRow, 8).Value = DateTime.Now;
+                wsExisting.Columns().AdjustToContents();
+
+                wb.Save();
+            }
+        }
+    }
+}

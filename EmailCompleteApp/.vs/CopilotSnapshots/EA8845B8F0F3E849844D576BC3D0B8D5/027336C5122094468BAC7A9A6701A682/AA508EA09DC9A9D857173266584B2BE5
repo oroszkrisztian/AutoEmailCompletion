@@ -1,0 +1,188 @@
+﻿<UserControl x:Class="EmailCompleteApp.Pages.ClientPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:EmailCompleteApp.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="BackgroundColor" Color="#F8F9FA"/>
+        <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#007BFF"/>
+        <SolidColorBrush x:Key="TextColor" Color="#212529"/>
+        <SolidColorBrush x:Key="SendEmailHover" Color="#20C997"/>
+        <SolidColorBrush x:Key="BorderColor" Color="Black"/>
+        <SolidColorBrush x:Key="BorderFocus" Color="#007BFF"/>
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextColor}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource PrimaryColor}"/>
+        </Style>
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="180"/>
+        </Style>
+        <!-- Tab ToggleButton Style (kept for compatibility if used elsewhere) -->
+        <Style x:Key="TabToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="#E9ECEF"/>
+            <Setter Property="Foreground" Value="#212529"/>
+            <Setter Property="BorderBrush" Value="#007BFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Width" Value="140"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="18">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#007BFF"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#B6D4FE"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="{StaticResource BackgroundColor}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header and Mode Switch -->
+        <Grid Grid.Row="0" Margin="20,20,20,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="PageTitle"
+                   Text="Client"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,8,0"
+                   Foreground="{StaticResource TextColor}"/>
+                <!-- Simpler selection using a ComboBox -->
+                <ComboBox x:Name="ModeSelector"
+                          Style="{StaticResource ModernComboBoxStyle}"
+                          SelectedIndex="0"
+                          Margin="8,0,0,0"
+                          SelectionChanged="ModeSelector_SelectionChanged">
+                    <ComboBoxItem Content="Client"/>
+                    <ComboBoxItem Content="Transportator"/>
+                </ComboBox>
+            </StackPanel>
+            <Button Content="Insert"
+                    Background="{StaticResource PrimaryColor}"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Padding="16,8"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                    Cursor="Hand"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Click="InsertClick"
+                    Grid.Column="1">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="ButtonBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource SendEmailHover}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+
+        <!-- Inputs -->
+        <StackPanel Grid.Row="1" MaxWidth="900" Margin="40,40,40,0" VerticalAlignment="Top">
+            <!-- Client/Transportator Fields -->
+            <StackPanel x:Name="ClientFieldsPanel">
+                <TextBlock Text="Nume client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="ClientName" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                
+                <TextBlock Text="Adresa client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="ClientAddress" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="Banca client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="ClientBank" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="IBAN client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="ClientIban" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="VAT number:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
+                <TextBox x:Name="ClientVatNumber" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="Camera de Comert:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="ClientCameraDeComert" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="Termenul de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="ClientTermenPlata" Style="{StaticResource ModernTextBoxStyle}"/>
+            </StackPanel>
+            <StackPanel x:Name="TransportatorFieldsPanel" Visibility="Collapsed">
+                <TextBlock Text="Nume transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="TransportatorName" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                
+                <TextBlock Text="Adresa transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="TransportatorAdresa" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="Banca transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="TransportatorContBancar" Style="{StaticResource ModernTextBoxStyle}"/>
+                
+                <TextBlock Text="IBAN transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="TransportatorIban" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                <TextBlock Text="VAT number:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
+                <TextBox x:Name="TransportatorVatNumber" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                <TextBlock Text="Camera de Comert:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="TransportatorCameraDeComert" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                <TextBlock Text="Termenul de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBox x:Name="TransportatorTermenPlata" Style="{StaticResource ModernTextBoxStyle}"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

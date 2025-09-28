@@ -228,7 +228,7 @@ namespace EmailCompleteApp.Pages {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/EmailCompleteApp;component/pages/comandatransport.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/EmailCompleteApp;V1.0.0.0;component/pages/comandatransport.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Pages\ComandaTransport.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

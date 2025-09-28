@@ -24,69 +24,90 @@ namespace EmailCompleteApp.Pages
         public ClientPage()
         {
             InitializeComponent();
-
-            var textBoxes = new[] 
-            {
-                ClientName, ClientAddress, ClientBank, ClientIban,
-                ClientVatNumber, ClientCameraDeComert, ClientTermenPlata
-            };
-
-            
         }
 
         private void InsertClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(ClientName.Text))
-                {
-                    MessageBox.Show("Name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    ClientName.Focus();
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(ClientAddress.Text))
-                {
-                    MessageBox.Show("Address is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    ClientAddress.Focus();
-                    return;
-                }
-
-                Client client = new Client(
-                    ClientName.Text,
-                    ClientAddress.Text,
-                    ClientBank.Text,
-                    ClientIban.Text,
-                    ClientVatNumber.Text,
-                    ClientCameraDeComert.Text,
-                    ClientTermenPlata.Text
-                );
-
-                // Decide target based on selected tab
-                var selectedHeader = (EntityTabControl?.SelectedItem as TabItem)?.Header?.ToString() ?? "Client";
-                bool isTransportator = string.Equals(selectedHeader, "Transportator", StringComparison.OrdinalIgnoreCase);
-
-                var excelPath = isTransportator ? GetTransportatorsExcelPath() : GetClientsExcelPath();
+                var excelPath = GetDatabaseExcelPath();
                 System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(excelPath)!);
 
-                if (isTransportator)
-                {
-                    AppendTransportatorToExcel(excelPath, client);
-                }
-                else
-                {
-                    AppendClientToExcel(excelPath, client);
-                }
+                var tabControl = this.FindName("ModeTabControl") as TabControl;
+                bool isClientTab = tabControl?.SelectedIndex == 0; // 0: Client, 1: Transportator
 
-                MessageBox.Show($"{(isTransportator ? "Transportator" : "Client")} inserted to Excel:\n{excelPath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (isClientTab)
+                {
+                    if (string.IsNullOrWhiteSpace(ClientName.Text))
+                    {
+                        MessageBox.Show("Name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        ClientName.Focus();
+                        return;
+                    }
 
-                ClientName.Text = string.Empty;
-                ClientAddress.Text = string.Empty;
-                ClientBank.Text = string.Empty;
-                ClientIban.Text = string.Empty;
-                ClientVatNumber.Text = string.Empty;
-                ClientCameraDeComert.Text = string.Empty;
-                ClientTermenPlata.Text = string.Empty;
+                    if (string.IsNullOrWhiteSpace(ClientAddress.Text))
+                    {
+                        MessageBox.Show("Address is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        ClientAddress.Focus();
+                        return;
+                    }
+
+                    Client client = new Client(
+                        ClientName.Text,
+                        ClientAddress.Text,
+                        ClientBank.Text,
+                        ClientIban.Text,
+                        ClientVatNumber.Text,
+                        ClientCameraDeComert.Text,
+                        ClientTermenPlata.Text
+                    );
+
+                    AppendToExcel(excelPath, "Clients", client);
+                    MessageBox.Show($"Client inserted to Excel:\n{excelPath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    ClientName.Text = string.Empty;
+                    ClientAddress.Text = string.Empty;
+                    ClientBank.Text = string.Empty;
+                    ClientIban.Text = string.Empty;
+                    ClientVatNumber.Text = string.Empty;
+                    ClientCameraDeComert.Text = string.Empty;
+                    ClientTermenPlata.Text = string.Empty;
+                }
+                else // Transportator
+                {
+                    if (string.IsNullOrWhiteSpace(TransportatorName.Text))
+                    {
+                        MessageBox.Show("Name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TransportatorName.Focus();
+                        return;
+                    }
+                    if (string.IsNullOrWhiteSpace(TransportatorAdresa.Text))
+                    {
+                        MessageBox.Show("Address is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TransportatorAdresa.Focus();
+                        return;
+                    }
+                    Client transportator = new Client(
+                        TransportatorName.Text,
+                        TransportatorAdresa.Text,
+                        TransportatorContBancar.Text,
+                        TransportatorIban.Text,
+                        TransportatorVatNumber.Text,
+                        TransportatorCameraDeComert.Text,
+                        TransportatorTermenPlata.Text
+                    );
+
+                    AppendToExcel(excelPath, "Transportators", transportator);
+                    MessageBox.Show($"Transportator inserted to Excel:\n{excelPath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    TransportatorName.Text = string.Empty;
+                    TransportatorAdresa.Text = string.Empty;
+                    TransportatorContBancar.Text =string.Empty;
+                    TransportatorIban.Text= string.Empty;
+                    TransportatorVatNumber.Text= string.Empty;
+                    TransportatorCameraDeComert.Text = string.Empty;
+                    TransportatorTermenPlata.Text = string.Empty;
+                }
             }
             catch (ArgumentException ex)
             {
@@ -102,7 +123,7 @@ namespace EmailCompleteApp.Pages
             }
         }
 
-        private static string GetClientsExcelPath()
+        private static string GetDatabaseExcelPath()
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -112,39 +133,13 @@ namespace EmailCompleteApp.Pages
                 string docDir = System.IO.Path.Combine(current, "doc");
                 if (Directory.Exists(docDir))
                 {
-                    string preferred = System.IO.Path.Combine(docDir, "clients.xlsx");
-                    string typo = System.IO.Path.Combine(docDir, "clients.xlxs");
-                    if (File.Exists(typo) && !File.Exists(preferred))
-                    {
-                        return typo;
-                    }
-                    return preferred;
+                    return System.IO.Path.Combine(docDir, "database.xlsx");
                 }
                 current = Directory.GetParent(current)?.FullName;
             }
 
             var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return System.IO.Path.Combine(docs, "AutoEmailCompletion", "clients.xlsx");
-        }
-
-        private static string GetTransportatorsExcelPath()
-        {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-
-            string? current = baseDir;
-            for (int i = 0; i < 6 && current != null; i++)
-            {
-                string docDir = System.IO.Path.Combine(current, "doc");
-                if (Directory.Exists(docDir))
-                {
-                    string preferred = System.IO.Path.Combine(docDir, "transportators.xlsx");
-                    return preferred;
-                }
-                current = Directory.GetParent(current)?.FullName;
-            }
-
-            var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return System.IO.Path.Combine(docs, "AutoEmailCompletion", "transportators.xlsx");
+            return System.IO.Path.Combine(docs, "AutoEmailCompletion", "database.xlsx");
         }
 
         private static void EnsureHeader(IXLWorksheet ws)
@@ -160,65 +155,8 @@ namespace EmailCompleteApp.Pages
             ws.Row(1).Style.Font.Bold = true;
         }
 
-        private static void AppendClientToExcel(string filePath, Client client)
+        private static void AppendToExcel(string filePath, string sheetName, Client client)
         {
-            const string sheetName = "Clients";
-
-            if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
-            {
-                using var initWb = new XLWorkbook();
-                var initWs = initWb.Worksheets.Add(sheetName);
-                EnsureHeader(initWs);
-                initWs.Columns().AdjustToContents();
-                initWb.SaveAs(filePath);
-            }
-
-            XLWorkbook? wb = null;
-            try
-            {
-                wb = new XLWorkbook(filePath);
-            }
-            catch
-            {
-                using var recreate = new XLWorkbook();
-                var wsNew = recreate.Worksheets.Add(sheetName);
-                EnsureHeader(wsNew);
-                recreate.SaveAs(filePath);
-                wb = new XLWorkbook(filePath);
-            }
-
-            using (wb)
-            {
-                var wsExisting = wb.Worksheets.FirstOrDefault(s => s.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase))
-                               ?? wb.Worksheets.Add(sheetName);
-
-                // Ensure header row exists
-                if (wsExisting.Cell(1, 1).GetString().Length == 0)
-                {
-                    EnsureHeader(wsExisting);
-                }
-
-                var lastRow = wsExisting.LastRowUsed()?.RowNumber() ?? 1;
-                var targetRow = lastRow >= 1 ? lastRow + 1 : 2;
-
-                wsExisting.Cell(targetRow, 1).Value = client.Name;
-                wsExisting.Cell(targetRow, 2).Value = client.Address;
-                wsExisting.Cell(targetRow, 3).Value = client.Bank;
-                wsExisting.Cell(targetRow, 4).Value = client.IBAN;
-                wsExisting.Cell(targetRow, 5).Value = client.VATNumber;
-                wsExisting.Cell(targetRow, 6).Value = client.CameraDeComert;
-                wsExisting.Cell(targetRow, 7).Value = client.TermenulDePlata;
-                wsExisting.Cell(targetRow, 8).Value = DateTime.Now;
-                wsExisting.Columns().AdjustToContents();
-
-                wb.Save();
-            }
-        }
-
-        private static void AppendTransportatorToExcel(string filePath, Client client)
-        {
-            const string sheetName = "Transportators";
-
             if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
             {
                 using var initWb = new XLWorkbook();

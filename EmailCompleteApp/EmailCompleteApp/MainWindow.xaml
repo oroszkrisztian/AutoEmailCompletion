@@ -121,7 +121,7 @@
 
 
                         <Button x:Name="ClientButtonPage"
-                                Content="Client"
+                                Content="Client/Transportator"
                                 Margin="10"
                                 Background="White"
                                 Foreground="#272537"
@@ -135,6 +135,26 @@
                                         <ContentPresenter HorizontalAlignment="Center" 
                                                           VerticalAlignment="Center"
                                                           TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button x:Name="LocationButtonPage"
+                                Content="Locatii"
+                                Margin="10"
+                                Background="White"
+                                Foreground="#272537"
+                                Click="LocationButton_Click"
+                                MouseEnter="LocationButton_MouseEnter"
+                                MouseLeave="LocationButton_MouseLeave">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                    CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"
+                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
                                     </Border>
                                 </ControlTemplate>
                             </Button.Template>

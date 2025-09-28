@@ -35,6 +35,14 @@ namespace EmailCompleteApp
             ClientButtonPage.Foreground = Brushes.White;
         }
 
+        private void LocationButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentArea.Content = new LocationPage();
+            ResetButtonStyles();
+            LocationButtonPage.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
+            LocationButtonPage.Foreground= Brushes.White;
+        }
+
         private void ComandaTransport_Click(object sender, RoutedEventArgs e)
         {
             MainContentArea.Content = new ComandaTransport();
@@ -68,6 +76,15 @@ namespace EmailCompleteApp
             }
         }
 
+        private void LocationButton_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (LocationButtonPage.Background != new SolidColorBrush(Color.FromRgb(100, 150, 255)))
+            {
+                LocationButtonPage.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
+                LocationButtonPage.Foreground = Brushes.White;
+            }
+        }
+
         private void ComandaTransportButton_MouseEnter(object sender, MouseEventArgs e)
         {
             if (ComandaTransportButton.Background != new SolidColorBrush(Color.FromRgb(100, 150, 255)))
@@ -92,6 +109,22 @@ namespace EmailCompleteApp
                 // Reset to default state
                 ClientButtonPage.Background = Brushes.White;
                 ClientButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+            }
+        }
+
+        private void LocationButton_MouseLeave(object sender, MouseEventArgs e)
+        {
+
+            if (MainContentArea.Content is ClientPage)
+            {
+                // Keep selected state - do nothing
+                return;
+            }
+            else
+            {
+                // Reset to default state
+                LocationButtonPage.Background = Brushes.White;
+                LocationButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
             }
         }
 
