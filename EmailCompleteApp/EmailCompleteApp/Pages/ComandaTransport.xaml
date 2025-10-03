@@ -108,7 +108,13 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <ComboBox x:Name="ClientComboBox" 
+                                  Style="{StaticResource ModernComboBoxStyle}"
+                                  IsEditable="True" 
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  TextBoxBase.TextChanged="OnClientTextChanged"
+                                  SelectionChanged="OnClientSelectionChanged"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Tarif:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
@@ -145,7 +151,13 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <ComboBox x:Name="TransportatorComboBox" 
+                                  Style="{StaticResource ModernComboBoxStyle}"
+                                  IsEditable="True" 
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  TextBoxBase.TextChanged="OnTransportatorTextChanged"
+                                  SelectionChanged="OnTransportatorSelectionChanged"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Tarif:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
@@ -235,17 +247,29 @@
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Locatia incarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="LocatieIncarcareTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBlock Text="Adresa incarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="LocatieIncarcareComboBox" 
+                                  Style="{StaticResource ModernComboBoxStyle}"
+                                  IsEditable="True" 
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  TextBoxBase.TextChanged="OnIncarcareTextChanged"
+                                  SelectionChanged="OnIncarcareSelectionChanged"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="Locatie descarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="LocatieDescarcareTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBlock Text="Adresa descarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="LocatieDescarcareComboBox" 
+                                  Style="{StaticResource ModernComboBoxStyle}"
+                                  IsEditable="True" 
+                                  IsTextSearchEnabled="False"
+                                  StaysOpenOnEdit="True"
+                                  TextBoxBase.TextChanged="OnDescarcareTextChanged"
+                                  SelectionChanged="OnDescarcareSelectionChanged"/>
                     </StackPanel>
                 </Grid>
 
                 <!-- Max Days -->
-                <TextBlock Text="Max Days:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                <TextBlock Text="Termen de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
                 <TextBox x:Name="MaxDaysTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
             </StackPanel>
         </ScrollViewer>

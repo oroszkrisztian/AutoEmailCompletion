@@ -3,16 +3,24 @@
   "WorkspaceRootPath": "E:\\AutoEmailCompletion\\EmailCompleteApp\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\clientpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\clientpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\services\\searchservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\services\\searchservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\clientpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\clientpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\comandatransport.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\comandatransport.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\locationpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\locationpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\locationpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\locationpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\comandatransport.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\comandatransport.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -27,16 +35,16 @@
       "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\models\\client.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\pages\\locationpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\pages\\locationpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|e:\\autoemailcompletion\\emailcompleteapp\\emailcompleteapp\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7B927DCE-BA3C-4395-BABE-A042E950D026}|EmailCompleteApp\\EmailCompleteApp.csproj|solutionrelative:emailcompleteapp\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -46,11 +54,37 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
+              "Title": "SearchService.cs",
+              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Services\\SearchService.cs",
+              "RelativeDocumentMoniker": "EmailCompleteApp\\Services\\SearchService.cs",
+              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Services\\SearchService.cs",
+              "RelativeToolTip": "EmailCompleteApp\\Services\\SearchService.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAAC0AAABOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-03T16:40:49.585Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\App.xaml.cs",
+              "RelativeDocumentMoniker": "EmailCompleteApp\\App.xaml.cs",
+              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\App.xaml.cs",
+              "RelativeToolTip": "EmailCompleteApp\\App.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwBIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-03T16:00:51.603Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "Client.cs",
               "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Models\\Client.cs",
               "RelativeDocumentMoniker": "EmailCompleteApp\\Models\\Client.cs",
@@ -58,33 +92,7 @@
               "RelativeToolTip": "EmailCompleteApp\\Models\\Client.cs",
               "ViewState": "AgIAACQAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-28T09:42:25.883Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Location.cs",
-              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Models\\Location.cs",
-              "RelativeDocumentMoniker": "EmailCompleteApp\\Models\\Location.cs",
-              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Models\\Location.cs",
-              "RelativeToolTip": "EmailCompleteApp\\Models\\Location.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-28T09:42:21.712Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "MainWindow.xaml",
-              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\MainWindow.xaml",
-              "RelativeDocumentMoniker": "EmailCompleteApp\\MainWindow.xaml",
-              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\MainWindow.xaml",
-              "RelativeToolTip": "EmailCompleteApp\\MainWindow.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-09-28T09:13:11.121Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-28T09:42:25.883Z"
             },
             {
               "$type": "Document",
@@ -94,7 +102,7 @@
               "RelativeDocumentMoniker": "EmailCompleteApp\\Pages\\LocationPage.xaml.cs",
               "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\LocationPage.xaml.cs",
               "RelativeToolTip": "EmailCompleteApp\\Pages\\LocationPage.xaml.cs",
-              "ViewState": "AgIAAHYAAAAAAAAAAAAIwI4AAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAGoAAAAAAAAAAAA1wG8AAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-28T09:33:20.666Z",
               "EditorCaption": ""
@@ -102,19 +110,42 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "ClientPage.xaml.cs",
-              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ClientPage.xaml.cs",
-              "RelativeDocumentMoniker": "EmailCompleteApp\\Pages\\ClientPage.xaml.cs",
-              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ClientPage.xaml.cs",
-              "RelativeToolTip": "EmailCompleteApp\\Pages\\ClientPage.xaml.cs",
-              "ViewState": "AgIAAMIAAAAAAAAAAAD4v9YAAAAAAAAAAAAAAA==",
+              "Title": "ComandaTransport.xaml.cs",
+              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ComandaTransport.xaml.cs",
+              "RelativeDocumentMoniker": "EmailCompleteApp\\Pages\\ComandaTransport.xaml.cs",
+              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ComandaTransport.xaml.cs",
+              "RelativeToolTip": "EmailCompleteApp\\Pages\\ComandaTransport.xaml.cs",
+              "ViewState": "AgIAAHEDAAAAAAAAAAD4v4gDAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-28T09:29:09.973Z",
+              "WhenOpened": "2025-10-03T14:44:56.169Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
+              "Title": "Location.cs",
+              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Models\\Location.cs",
+              "RelativeDocumentMoniker": "EmailCompleteApp\\Models\\Location.cs",
+              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Models\\Location.cs",
+              "RelativeToolTip": "EmailCompleteApp\\Models\\Location.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-28T09:42:21.712Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "EmailCompleteApp\\MainWindow.xaml",
+              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\MainWindow.xaml",
+              "RelativeToolTip": "EmailCompleteApp\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-09-28T09:13:11.121Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "LocationPage.xaml",
               "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\LocationPage.xaml",
               "RelativeDocumentMoniker": "EmailCompleteApp\\Pages\\LocationPage.xaml",
@@ -126,7 +157,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 4,
+              "Title": "ComandaTransport.xaml",
+              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ComandaTransport.xaml",
+              "RelativeDocumentMoniker": "EmailCompleteApp\\Pages\\ComandaTransport.xaml",
+              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ComandaTransport.xaml",
+              "RelativeToolTip": "EmailCompleteApp\\Pages\\ComandaTransport.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-10-03T13:45:25.113Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "EmailCompleteApp\\MainWindow.xaml.cs",
@@ -134,12 +177,11 @@
               "RelativeToolTip": "EmailCompleteApp\\MainWindow.xaml.cs",
               "ViewState": "AgIAABcAAAAAAAAAAAAAwCgAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-28T09:14:49.548Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-28T09:14:49.548Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "App.xaml",
               "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\App.xaml",
               "RelativeDocumentMoniker": "EmailCompleteApp\\App.xaml",
@@ -147,39 +189,6 @@
               "RelativeToolTip": "EmailCompleteApp\\App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2025-09-28T09:13:07.015Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Orientation": 0,
-      "VerticalTabListWidth": 256,
-      "FloatingWindowState": {
-        "Id": "29ead2b1-ac0a-45ce-8620-1356079573ce",
-        "Display": 1,
-        "X": 613,
-        "Y": 91,
-        "Width": 1448,
-        "Height": 807,
-        "WindowState": 2
-      },
-      "DocumentGroups": [
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 0,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ClientPage.xaml",
-              "DocumentMoniker": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ClientPage.xaml",
-              "RelativeDocumentMoniker": "EmailCompleteApp\\Pages\\ClientPage.xaml",
-              "ToolTip": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ClientPage.xaml",
-              "RelativeToolTip": "EmailCompleteApp\\Pages\\ClientPage.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-09-28T09:25:04.095Z",
               "EditorCaption": ""
             }
           ]

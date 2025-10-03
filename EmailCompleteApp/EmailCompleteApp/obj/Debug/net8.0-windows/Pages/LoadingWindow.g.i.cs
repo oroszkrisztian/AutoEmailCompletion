@@ -52,7 +52,7 @@ namespace EmailCompleteApp.Pages {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/EmailCompleteApp;V1.0.0.0;component/pages/loadingwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/EmailCompleteApp;component/pages/loadingwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Pages\LoadingWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

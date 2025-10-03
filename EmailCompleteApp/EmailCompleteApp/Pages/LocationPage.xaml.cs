@@ -89,8 +89,8 @@ namespace EmailCompleteApp.Pages
                 string docDir = System.IO.Path.Combine(current, "doc");
                 if (Directory.Exists(docDir))
                 {
-                    string preferred = System.IO.Path.Combine(docDir, "locations.xlsx");
-                    string typo = System.IO.Path.Combine(docDir, "locations.xlxs");
+                    string preferred = System.IO.Path.Combine(docDir, "database.xlsx");
+                    string typo = System.IO.Path.Combine(docDir, "database.xlxs");
                     if (File.Exists(typo) && !File.Exists(preferred))
                     {
                         return typo;
@@ -101,7 +101,7 @@ namespace EmailCompleteApp.Pages
             }
 
             var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return System.IO.Path.Combine(docs, "AutoEmailCompletion", "locations.xlsx");
+            return System.IO.Path.Combine(docs, "AutoEmailCompletion", "database.xlsx");
         }
 
         private static void EnsureHeader(IXLWorksheet ws)

@@ -10,18 +10,57 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using EmailCompleteApp.Services;
+using EmailCompleteApp.Models;
 
 namespace EmailCompleteApp.Pages
 {
     public partial class ComandaTransport : UserControl
     {
+        private readonly SearchService _searchService;
+        private DispatcherTimer _searchTimer;
+        private DispatcherTimer _transportatorSearchTimer;
+        private DispatcherTimer _incarcareSearchTimer;
+        private DispatcherTimer _descarcareSearchTimer;
+        private bool _isUpdatingComboBox = false;
+        private bool _isUpdatingTransportatorComboBox = false;
+        private bool _isUpdatingIncarcareComboBox = false;
+        private bool _isUpdatingDescarcareComboBox = false;
+
         public ComandaTransport()
         {
             InitializeComponent();
-
             
+            _searchService = new SearchService();
+            
+            // Initialize search timers for debouncing
+            _searchTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+            _searchTimer.Tick += OnSearchTimerTick;
+
+            _transportatorSearchTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+            _transportatorSearchTimer.Tick += OnTransportatorSearchTimerTick;
+
+            _incarcareSearchTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+            _incarcareSearchTimer.Tick += OnIncarcareSearchTimerTick;
+
+            _descarcareSearchTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+            _descarcareSearchTimer.Tick += OnDescarcareSearchTimerTick;
+
             MonedaComboBox.SelectedIndex = 0;
             TipComboBox.SelectedIndex = 0;
             if (TransportatorMonedaComboBox != null) TransportatorMonedaComboBox.SelectedIndex = 0;
@@ -31,18 +70,119 @@ namespace EmailCompleteApp.Pages
             // Set default dates (if present)
             if (DataIncarcareDatePicker != null) DataIncarcareDatePicker.SelectedDate = DateTime.Today;
             if (DataDescarcareDatePicker != null) DataDescarcareDatePicker.SelectedDate = DateTime.Today.AddDays(1);
-
-            // Handle text box validation
-            var textBoxes = new[] {
-                NumarComandaTextBox, ClientTextBox, TarifTextBox, PrimitTextBox,
-                TransportatorTextBox, TransportatorTarifTextBox, OferitTextBox,
-                ProdusTextBox, CantitateTextBox, ClasaTextBox, UMTextBox,
-                MaxDaysTextBox, NumarInmatriculareTextBox, LocatieIncarcareTextBox, LocatieDescarcareTextBox
-            };
-            
         }
 
-       
+        private void OnClientTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingComboBox) return;
+
+            // Stop and restart the timer to debounce the search
+            _searchTimer.Stop();
+            _searchTimer.Start();
+        }
+
+        private async void OnSearchTimerTick(object sender, EventArgs e)
+        {
+            _searchTimer.Stop();
+            
+            var searchText = ClientComboBox.Text?.Trim();
+            
+            // Don't clear items if no text - just close dropdown
+            if (string.IsNullOrEmpty(searchText))
+            {
+                ClientComboBox.IsDropDownOpen = false;
+                return;
+            }
+            
+            try
+            {
+                var clientNames = await _searchService.SearchClientNamesAsync(searchText);
+                
+                _isUpdatingComboBox = true;
+                
+                // Store current text and selection
+                var currentText = ClientComboBox.Text;
+                var currentSelectionStart = ClientComboBox.IsEditable ? GetTextBoxFromComboBox(ClientComboBox)?.SelectionStart ?? 0 : 0;
+                
+                // Only update items if we have results
+                if (clientNames.Any())
+                {
+                    ClientComboBox.Items.Clear();
+                    foreach (var name in clientNames)
+                    {
+                        ClientComboBox.Items.Add(name);
+                    }
+                    
+                    // Show dropdown with results
+                    ClientComboBox.IsDropDownOpen = true;
+                }
+                else
+                {
+                    // Close dropdown if no results, but don't clear existing items
+                    ClientComboBox.IsDropDownOpen = false;
+                }
+                
+                // Always restore text and selection
+                ClientComboBox.Text = currentText;
+                if (ClientComboBox.IsEditable)
+                {
+                    var textBox = GetTextBoxFromComboBox(ClientComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = currentSelectionStart;
+                        textBox.SelectionLength = 0;
+                    }
+                }
+                
+                _isUpdatingComboBox = false;
+            }
+            catch
+            {
+                _isUpdatingComboBox = false;
+            }
+        }
+
+        private void OnClientSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingComboBox) return;
+            
+            // When user selects a client from dropdown, close it and remove focus
+            if (ClientComboBox.SelectedItem != null)
+            {
+                _isUpdatingComboBox = true; // Prevent text change events during selection
+                
+                // Stop the search timer to prevent reopening
+                _searchTimer.Stop();
+                
+                // Close dropdown immediately
+                ClientComboBox.IsDropDownOpen = false;
+                
+                // Use dispatcher to delay the focus change and flag reset
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    await Task.Delay(50); // Small delay to ensure dropdown is closed
+                    
+                    // Clear text selection to show plain text
+                    var textBox = GetTextBoxFromComboBox(ClientComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = textBox.Text.Length; // Move cursor to end
+                        textBox.SelectionLength = 0; // Clear selection
+                    }
+                    
+                    // Remove focus from the ComboBox to prevent reopening
+                    ClientComboBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                    
+                    await Task.Delay(100); // Additional delay before resetting flag
+                    _isUpdatingComboBox = false;
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+        }
+
+        private static TextBox? GetTextBoxFromComboBox(ComboBox comboBox)
+        {
+            return comboBox.Template?.FindName("PART_EditableTextBox", comboBox) as TextBox;
+        }
 
         private async void OnSendClick(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -69,13 +209,11 @@ namespace EmailCompleteApp.Pages
                 string projectDir = FindProjectDirWithDoc(projectRoot);
                 string docDir = Path.Combine(projectDir, "doc");
 
-                // Use the pre-merged template
                 string mergedTemplatePath = Path.Combine(docDir, "comanda.docx");
 
                 string generatedDir = Path.Combine(docDir, "Generated");
                 Directory.CreateDirectory(generatedDir);
 
-                // Human-readable, Windows-safe timestamp (no colons)
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
                 var replacements = BuildCombinedReplacements();
 
@@ -148,11 +286,27 @@ namespace EmailCompleteApp.Pages
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "Numar Comanda", NumarComandaTextBox.Text?.Trim() ?? string.Empty },
-                { "Client", ClientTextBox.Text?.Trim() ?? string.Empty },
+                { "Client", ClientComboBox.Text?.Trim() ?? string.Empty },
                 { "Tarif", TarifTextBox.Text?.Trim() ?? string.Empty },
                 { "Primit", PrimitTextBox.Text?.Trim() ?? string.Empty },
                 { "Moneda", (MonedaComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty },
-                { "Tip", (TipComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty }
+                { "Tip", (TipComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty },
+                { "Transportator", TransportatorComboBox.Text?.Trim() ?? string.Empty },
+                { "Transportator Tarif", TransportatorTarifTextBox.Text?.Trim() ?? string.Empty },
+                { "Oferit", OferitTextBox.Text?.Trim() ?? string.Empty },
+                { "Transportator Moneda", (TransportatorMonedaComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty },
+                { "Transportator Tip", (TransportatorTipComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty },
+                { "Data Incarcare", DataIncarcareDatePicker.SelectedDate?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "Data Descarcare", DataDescarcareDatePicker.SelectedDate?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "Produs", ProdusTextBox.Text?.Trim() ?? string.Empty },
+                { "Cantitate", CantitateTextBox.Text?.Trim() ?? string.Empty },
+                { "Tip ADR", (TipAdrComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty },
+                { "Clasa", ClasaTextBox.Text?.Trim() ?? string.Empty },
+                { "UM", UMTextBox.Text?.Trim() ?? string.Empty },
+                { "Numar Inmatriculare", NumarInmatriculareTextBox.Text?.Trim() ?? string.Empty },
+                { "Adresa Incarcare", LocatieIncarcareComboBox.Text?.Trim() ?? string.Empty },
+                { "Adresa Descarcare", LocatieDescarcareComboBox.Text?.Trim() ?? string.Empty },
+                { "Termen Plata", MaxDaysTextBox.Text?.Trim() ?? string.Empty }
             };
 
             return map;
@@ -424,6 +578,327 @@ namespace EmailCompleteApp.Pages
             {
                 if (mailItem != null) Marshal.FinalReleaseComObject(mailItem);
                 if (outlookApp != null) Marshal.FinalReleaseComObject(outlookApp);
+            }
+        }
+
+        private void OnTransportatorTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingTransportatorComboBox) return;
+
+            // Stop and restart the timer to debounce the search
+            _transportatorSearchTimer.Stop();
+            _transportatorSearchTimer.Start();
+        }
+
+        private async void OnTransportatorSearchTimerTick(object sender, EventArgs e)
+        {
+            _transportatorSearchTimer.Stop();
+            
+            var searchText = TransportatorComboBox.Text?.Trim();
+            
+            // Don't clear items if no text - just close dropdown
+            if (string.IsNullOrEmpty(searchText))
+            {
+                TransportatorComboBox.IsDropDownOpen = false;
+                return;
+            }
+            
+            try
+            {
+                var transportatorNames = await _searchService.SearchTransportatorNamesAsync(searchText);
+                
+                _isUpdatingTransportatorComboBox = true;
+                
+                // Store current text and selection
+                var currentText = TransportatorComboBox.Text;
+                var currentSelectionStart = TransportatorComboBox.IsEditable ? GetTextBoxFromComboBox(TransportatorComboBox)?.SelectionStart ?? 0 : 0;
+                
+                // Only update items if we have results
+                if (transportatorNames.Any())
+                {
+                    TransportatorComboBox.Items.Clear();
+                    foreach (var name in transportatorNames)
+                    {
+                        TransportatorComboBox.Items.Add(name);
+                    }
+                    
+                    // Show dropdown with results
+                    TransportatorComboBox.IsDropDownOpen = true;
+                }
+                else
+                {
+                    // Close dropdown if no results, but don't clear existing items
+                    TransportatorComboBox.IsDropDownOpen = false;
+                }
+                
+                // Always restore text and selection
+                TransportatorComboBox.Text = currentText;
+                if (TransportatorComboBox.IsEditable)
+                {
+                    var textBox = GetTextBoxFromComboBox(TransportatorComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = currentSelectionStart;
+                        textBox.SelectionLength = 0;
+                    }
+                }
+                
+                _isUpdatingTransportatorComboBox = false;
+            }
+            catch
+            {
+                _isUpdatingTransportatorComboBox = false;
+            }
+        }
+
+        private void OnTransportatorSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingTransportatorComboBox) return;
+            
+            // When user selects a transportator from dropdown, close it and remove focus
+            if (TransportatorComboBox.SelectedItem != null)
+            {
+                _isUpdatingTransportatorComboBox = true; // Prevent text change events during selection
+                
+                // Stop the search timer to prevent reopening
+                _transportatorSearchTimer.Stop();
+                
+                // Close dropdown immediately
+                TransportatorComboBox.IsDropDownOpen = false;
+                
+                // Use dispatcher to delay the focus change and flag reset
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    await Task.Delay(50); // Small delay to ensure dropdown is closed
+                    
+                    // Clear text selection to show plain text
+                    var textBox = GetTextBoxFromComboBox(TransportatorComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = textBox.Text.Length; // Move cursor to end
+                        textBox.SelectionLength = 0; // Clear selection
+                    }
+                    
+                    // Remove focus from the ComboBox to prevent reopening
+                    TransportatorComboBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                    
+                    await Task.Delay(100); // Additional delay before resetting flag
+                    _isUpdatingTransportatorComboBox = false;
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+        }
+
+        private void OnIncarcareTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingIncarcareComboBox) return;
+
+            // Stop and restart the timer to debounce the search
+            _incarcareSearchTimer.Stop();
+            _incarcareSearchTimer.Start();
+        }
+
+        private async void OnIncarcareSearchTimerTick(object sender, EventArgs e)
+        {
+            _incarcareSearchTimer.Stop();
+            
+            var searchText = LocatieIncarcareComboBox.Text?.Trim();
+            
+            // Don't clear items if no text - just close dropdown
+            if (string.IsNullOrEmpty(searchText))
+            {
+                LocatieIncarcareComboBox.IsDropDownOpen = false;
+                return;
+            }
+            
+            try
+            {
+                var addresses = await _searchService.SearchLocationAddressesAsync(searchText);
+                
+                _isUpdatingIncarcareComboBox = true;
+                
+                // Store current text and selection
+                var currentText = LocatieIncarcareComboBox.Text;
+                var currentSelectionStart = LocatieIncarcareComboBox.IsEditable ? GetTextBoxFromComboBox(LocatieIncarcareComboBox)?.SelectionStart ?? 0 : 0;
+                
+                // Only update items if we have results
+                if (addresses.Any())
+                {
+                    LocatieIncarcareComboBox.Items.Clear();
+                    foreach (var address in addresses)
+                    {
+                        LocatieIncarcareComboBox.Items.Add(address);
+                    }
+                    
+                    // Show dropdown with results
+                    LocatieIncarcareComboBox.IsDropDownOpen = true;
+                }
+                else
+                {
+                    // Close dropdown if no results, but don't clear existing items
+                    LocatieIncarcareComboBox.IsDropDownOpen = false;
+                }
+                
+                // Always restore text and selection
+                LocatieIncarcareComboBox.Text = currentText;
+                if (LocatieIncarcareComboBox.IsEditable)
+                {
+                    var textBox = GetTextBoxFromComboBox(LocatieIncarcareComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = currentSelectionStart;
+                        textBox.SelectionLength = 0;
+                    }
+                }
+                
+                _isUpdatingIncarcareComboBox = false;
+            }
+            catch
+            {
+                _isUpdatingIncarcareComboBox = false;
+            }
+        }
+
+        private void OnIncarcareSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingIncarcareComboBox) return;
+            
+            // When user selects an address from dropdown, close it and remove focus
+            if (LocatieIncarcareComboBox.SelectedItem != null)
+            {
+                _isUpdatingIncarcareComboBox = true; // Prevent text change events during selection
+                
+                // Stop the search timer to prevent reopening
+                _incarcareSearchTimer.Stop();
+                
+                // Close dropdown immediately
+                LocatieIncarcareComboBox.IsDropDownOpen = false;
+                
+                // Use dispatcher to delay the focus change and flag reset
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    await Task.Delay(50); // Small delay to ensure dropdown is closed
+                    
+                    // Clear text selection to show plain text
+                    var textBox = GetTextBoxFromComboBox(LocatieIncarcareComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = textBox.Text.Length; // Move cursor to end
+                        textBox.SelectionLength = 0; // Clear selection
+                    }
+                    
+                    // Remove focus from the ComboBox to prevent reopening
+                    LocatieIncarcareComboBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                    
+                    await Task.Delay(100); // Additional delay before resetting flag
+                    _isUpdatingIncarcareComboBox = false;
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+        }
+
+        private void OnDescarcareTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingDescarcareComboBox) return;
+
+            // Stop and restart the timer to debounce the search
+            _descarcareSearchTimer.Stop();
+            _descarcareSearchTimer.Start();
+        }
+
+        private async void OnDescarcareSearchTimerTick(object sender, EventArgs e)
+        {
+            _descarcareSearchTimer.Stop();
+            
+            var searchText = LocatieDescarcareComboBox.Text?.Trim();
+            
+            // Don't clear items if no text - just close dropdown
+            if (string.IsNullOrEmpty(searchText))
+            {
+                LocatieDescarcareComboBox.IsDropDownOpen = false;
+                return;
+            }
+            
+            try
+            {
+                var addresses = await _searchService.SearchLocationAddressesAsync(searchText);
+                
+                _isUpdatingDescarcareComboBox = true;
+                
+                // Store current text and selection
+                var currentText = LocatieDescarcareComboBox.Text;
+                var currentSelectionStart = LocatieDescarcareComboBox.IsEditable ? GetTextBoxFromComboBox(LocatieDescarcareComboBox)?.SelectionStart ?? 0 : 0;
+                
+                // Only update items if we have results
+                if (addresses.Any())
+                {
+                    LocatieDescarcareComboBox.Items.Clear();
+                    foreach (var address in addresses)
+                    {
+                        LocatieDescarcareComboBox.Items.Add(address);
+                    }
+                    
+                    // Show dropdown with results
+                    LocatieDescarcareComboBox.IsDropDownOpen = true;
+                }
+                else
+                {
+                    // Close dropdown if no results, but don't clear existing items
+                    LocatieDescarcareComboBox.IsDropDownOpen = false;
+                }
+                
+                // Always restore text and selection
+                LocatieDescarcareComboBox.Text = currentText;
+                if (LocatieDescarcareComboBox.IsEditable)
+                {
+                    var textBox = GetTextBoxFromComboBox(LocatieDescarcareComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = currentSelectionStart;
+                        textBox.SelectionLength = 0;
+                    }
+                }
+                
+                _isUpdatingDescarcareComboBox = false;
+            }
+            catch
+            {
+                _isUpdatingDescarcareComboBox = false;
+            }
+        }
+
+        private void OnDescarcareSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingDescarcareComboBox) return;
+            
+            // When user selects an address from dropdown, close it and remove focus
+            if (LocatieDescarcareComboBox.SelectedItem != null)
+            {
+                _isUpdatingDescarcareComboBox = true; // Prevent text change events during selection
+                
+                // Stop the search timer to prevent reopening
+                _descarcareSearchTimer.Stop();
+                
+                // Close dropdown immediately
+                LocatieDescarcareComboBox.IsDropDownOpen = false;
+                
+                // Use dispatcher to delay the focus change and flag reset
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    await Task.Delay(50); // Small delay to ensure dropdown is closed
+                    
+                    // Clear text selection to show plain text
+                    var textBox = GetTextBoxFromComboBox(LocatieDescarcareComboBox);
+                    if (textBox != null)
+                    {
+                        textBox.SelectionStart = textBox.Text.Length; // Move cursor to end
+                        textBox.SelectionLength = 0; // Clear selection
+                    }
+                    
+                    // Remove focus from the ComboBox to prevent reopening
+                    LocatieDescarcareComboBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                    
+                    await Task.Delay(100); // Additional delay before resetting flag
+                    _isUpdatingDescarcareComboBox = false;
+                }), System.Windows.Threading.DispatcherPriority.Background);
             }
         }
     }
