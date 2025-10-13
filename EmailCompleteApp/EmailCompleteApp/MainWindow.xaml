@@ -191,12 +191,40 @@
                         CornerRadius="0,0,20,0">
                     <ContentControl x:Name="MainContentArea">
                         <Grid>
-                            <TextBlock Text="Chose email to complete from sidebar!"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       FontSize="24"
-                                       FontWeight="Bold"
-                                       Foreground="#272537"/>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Search ComboBox Demo Section -->
+                            <StackPanel Grid.Row="0" Margin="20" Background="#F5F5F5" Padding="15">
+                                <TextBlock Text="Search ComboBox Demo" 
+                                           FontSize="18" 
+                                           FontWeight="SemiBold"
+                                           Foreground="#272537"
+                                           Margin="0,0,0,10"/>
+                                <TextBlock Text="Type to filter items:" 
+                                           FontSize="14" 
+                                           Foreground="#666666"
+                                           Margin="0,0,0,5"/>
+                                <ComboBox x:Name="SearchComboBox"
+                                          IsEditable="True"
+                                          ItemsSource="{Binding FilteredItems}"
+                                          Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                          MaxWidth="300"
+                                          HorizontalAlignment="Left"
+                                          Padding="5"/>
+                            </StackPanel>
+                            
+                            <!-- Original Content -->
+                            <Grid Grid.Row="1">
+                                <TextBlock Text="Chose email to complete from sidebar!"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           Foreground="#272537"/>
+                            </Grid>
                         </Grid>
                     </ContentControl>
                 </Border>

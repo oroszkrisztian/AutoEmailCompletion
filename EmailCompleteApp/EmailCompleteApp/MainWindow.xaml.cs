@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using System.Windows.Media;
 using EmailCompleteApp.Pages;
+using EmailCompleteApp.ViewModels;
 
 namespace EmailCompleteApp
 {
@@ -11,6 +12,7 @@ namespace EmailCompleteApp
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
         }
 
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
