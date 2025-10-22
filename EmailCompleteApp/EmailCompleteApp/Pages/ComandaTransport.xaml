@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -36,6 +37,10 @@
             <Setter Property="Height" Value="40"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
+        <Style x:Key="AutoCompleteComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource ModernComboBoxStyle}">
+            <Setter Property="IsEditable" Value="True"/>
+            <Setter Property="IsTextSearchEnabled" Value="False"/>
+        </Style>
     </UserControl.Resources>
     <Grid Background="{StaticResource BackgroundColor}">
         <Grid.RowDefinitions>
@@ -66,7 +71,7 @@
                     Cursor="Hand"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Click="OnSendClick">
+                    Command="{Binding SendEmailCommand}">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Template">
@@ -94,8 +99,23 @@
         <!-- Inputs -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel MaxWidth="900" Margin="40,40,40,0" VerticalAlignment="Top">
-                <TextBlock Text="Numar Comanda:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                <TextBox x:Name="NumarComandaTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                
+                <!--Row 0-->
+                <Grid Margin="0,0,0,16" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Numar Comanda TankSped:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding NumarComanda, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Numar Comanda Client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding NumarClient, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                    </StackPanel>
+                </Grid>
 
                 <!-- Row 1 -->
                 <Grid Margin="0,0,0,16">
@@ -104,36 +124,35 @@
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="ClientComboBox" 
-                                  Style="{StaticResource ModernComboBoxStyle}"
-                                  IsEditable="True" 
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  TextBoxBase.TextChanged="OnClientTextChanged"
-                                  SelectionChanged="OnClientSelectionChanged"/>
+                        <ComboBox x:Name="ClientComboBox"
+                                  Text="{Binding Client, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                  ItemsSource="{Binding ClientSuggestions}"
+                                  Style="{StaticResource AutoCompleteComboBoxStyle}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  PreviewKeyDown="ComboBox_PreviewKeyDown"
+                                  SelectionChanged="ComboBox_SelectionChanged"
+                                  GotFocus="ComboBox_GotFocus"
+                                  Loaded="ComboBox_Loaded"
+                                  Margin="0,0,0,8" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Tarif:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TarifTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding Tarif, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                        <TextBlock Text="Primit:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="PrimitTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="3" Margin="0,0,8,0">
                         <TextBlock Text="Moneda:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="MonedaComboBox" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                        <ComboBox SelectedIndex="{Binding MonedaIndex}" Style="{StaticResource ModernComboBoxStyle}">
                             <ComboBoxItem Content="EUR"/>
+                            <ComboBoxItem Content="EUR/MT"/>
                             <ComboBoxItem Content="RON"/>
                         </ComboBox>
                     </StackPanel>
-                    <StackPanel Grid.Column="4">
+                    <StackPanel Grid.Column="3">
                         <TextBlock Text="Tip:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="TipComboBox" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                        <ComboBox SelectedIndex="{Binding TipIndex}" Style="{StaticResource ModernComboBoxStyle}">
                             <ComboBoxItem Content="TVA"/>
                             <ComboBoxItem Content="ALL IN"/>
                         </ComboBox>
@@ -147,36 +166,35 @@
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="TransportatorComboBox" 
-                                  Style="{StaticResource ModernComboBoxStyle}"
-                                  IsEditable="True" 
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  TextBoxBase.TextChanged="OnTransportatorTextChanged"
-                                  SelectionChanged="OnTransportatorSelectionChanged"/>
+                        <ComboBox x:Name="TransportatorComboBox"
+                                  Text="{Binding Transportator, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                  ItemsSource="{Binding TransportatorSuggestions}"
+                                  Style="{StaticResource AutoCompleteComboBoxStyle}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  PreviewKeyDown="ComboBox_PreviewKeyDown"
+                                  SelectionChanged="ComboBox_SelectionChanged"
+                                  GotFocus="ComboBox_GotFocus"
+                                  Loaded="ComboBox_Loaded"
+                                  Margin="0,0,0,8" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Tarif:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorTarifTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorTarif, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                        <TextBlock Text="Oferit:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="OferitTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="3" Margin="0,0,8,0">
                         <TextBlock Text="Moneda:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="TransportatorMonedaComboBox" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                        <ComboBox SelectedIndex="{Binding TransportatorMonedaIndex}" Style="{StaticResource ModernComboBoxStyle}">
                             <ComboBoxItem Content="EUR"/>
+                            <ComboBoxItem Content="EUR/MT"/>
                             <ComboBoxItem Content="RON"/>
                         </ComboBox>
                     </StackPanel>
-                    <StackPanel Grid.Column="4">
+                    <StackPanel Grid.Column="3">
                         <TextBlock Text="Tip:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="TransportatorTipComboBox" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                        <ComboBox SelectedIndex="{Binding TransportatorTipIndex}" Style="{StaticResource ModernComboBoxStyle}">
                             <ComboBoxItem Content="TVA"/>
                             <ComboBoxItem Content="ALL IN"/>
                         </ComboBox>
@@ -191,11 +209,11 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Data de incarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <DatePicker x:Name="DataIncarcareDatePicker" FontSize="18" Height="46"/>
+                        <DatePicker SelectedDate="{Binding DataIncarcare}" FontSize="18" Height="46"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="8,0,0,0">
                         <TextBlock Text="Data de descarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <DatePicker x:Name="DataDescarcareDatePicker" FontSize="18" Height="46"/>
+                        <DatePicker SelectedDate="{Binding DataDescarcare}" FontSize="18" Height="46"/>
                     </StackPanel>
                 </Grid>
 
@@ -210,33 +228,33 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Produs:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ProdusTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding Produs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Cantitate:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="CantitateTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding Cantitate, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">
                         <TextBlock Text="Tip:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="TipAdrComboBox" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                        <ComboBox SelectedIndex="{Binding TipAdrIndex}" Style="{StaticResource ModernComboBoxStyle}">
                             <ComboBoxItem Content="ADR"/>
                             <ComboBoxItem Content="NON-ADR"/>
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Column="3" Margin="0,0,8,0">
                         <TextBlock Text="Clasa:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClasaTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding Clasa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="4">
-                        <TextBlock Text="UM:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="UMTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBlock Text="UN:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding Un, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                 </Grid>
 
                 <!-- Numar Inmatriculare -->
                 <StackPanel Margin="0,0,0,16">
                     <TextBlock Text="Numar Inmatriculare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="NumarInmatriculareTextBox" Style="{StaticResource ModernTextBoxStyle}"/>
+                    <TextBox Text="{Binding NumarInmatriculare, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                 </StackPanel>
 
                 <!-- Locatii -->
@@ -248,29 +266,33 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Adresa incarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="LocatieIncarcareComboBox" 
-                                  Style="{StaticResource ModernComboBoxStyle}"
-                                  IsEditable="True" 
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  TextBoxBase.TextChanged="OnIncarcareTextChanged"
-                                  SelectionChanged="OnIncarcareSelectionChanged"/>
+                        <ComboBox x:Name="IncarcareComboBox"
+                                  Text="{Binding LocatieIncarcare, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                  ItemsSource="{Binding IncarcareSuggestions}"
+                                  Style="{StaticResource AutoCompleteComboBoxStyle}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  PreviewKeyDown="ComboBox_PreviewKeyDown"
+                                  SelectionChanged="ComboBox_SelectionChanged"
+                                  GotFocus="ComboBox_GotFocus"
+                                  Loaded="ComboBox_Loaded"
+                                  Margin="0,0,0,8" />
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="Adresa descarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="LocatieDescarcareComboBox" 
-                                  Style="{StaticResource ModernComboBoxStyle}"
-                                  IsEditable="True" 
-                                  IsTextSearchEnabled="False"
-                                  StaysOpenOnEdit="True"
-                                  TextBoxBase.TextChanged="OnDescarcareTextChanged"
-                                  SelectionChanged="OnDescarcareSelectionChanged"/>
+                        <ComboBox x:Name="DescarcareComboBox"
+                                  Text="{Binding LocatieDescarcare, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                  ItemsSource="{Binding DescarcareSuggestions}"
+                                  Style="{StaticResource AutoCompleteComboBoxStyle}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  PreviewKeyDown="ComboBox_PreviewKeyDown"
+                                  SelectionChanged="ComboBox_SelectionChanged"
+                                  GotFocus="ComboBox_GotFocus"
+                                  Loaded="ComboBox_Loaded"
+                                  Margin="0,0,0,8" />
                     </StackPanel>
                 </Grid>
 
-                <!-- Max Days -->
-                <TextBlock Text="Termen de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                <TextBox x:Name="MaxDaysTextBox" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                
             </StackPanel>
         </ScrollViewer>
     </Grid>

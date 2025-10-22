@@ -1,0 +1,14 @@
+﻿using System.Windows.Controls;
+using EmailCompleteApp.ViewModels;
+
+namespace EmailCompleteApp.Pages
+{
+    public partial class ComandaTransport : UserControl
+    {
+        public ComandaTransport()
+        {
+            InitializeComponent();
+            DataContext = new ComandaTransportViewModel();
+        }
+    }
+}

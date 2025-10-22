@@ -8,6 +8,9 @@ namespace EmailCompleteApp
 
     public partial class MainWindow : Window
     {
+        private enum SelectedButton { None, Client, Location, Comanda, Istoric }
+        private SelectedButton _selected = SelectedButton.None;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -28,43 +31,34 @@ namespace EmailCompleteApp
         {
             // Switch to Cleint page
             MainContentArea.Content = new ClientPage();
-
-            // Update button styles to show active state
-            ResetButtonStyles();
-            ClientButtonPage.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
-            ClientButtonPage.Foreground = Brushes.White;
+            _selected = SelectedButton.Client;
+            UpdateButtonVisuals();
         }
 
         private void LocationButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentArea.Content = new LocationPage();
-            ResetButtonStyles();
-            LocationButtonPage.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
-            LocationButtonPage.Foreground= Brushes.White;
+            _selected = SelectedButton.Location;
+            UpdateButtonVisuals();
         }
 
         private void ComandaTransport_Click(object sender, RoutedEventArgs e)
         {
             MainContentArea.Content = new ComandaTransport();
-            
-            // Update button styles to show active state
-            ResetButtonStyles();
-            ComandaTransportButton.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
-            ComandaTransportButton.Foreground = Brushes.White;
+            _selected = SelectedButton.Comanda;
+            UpdateButtonVisuals();
         }
 
-       
-        private void ResetButtonStyles()
+        private void ComandaTransportIstorict_Click(object sender, RoutedEventArgs e)
         {
-            // Reset all buttons to default style
-            ClientButtonPage.Background = Brushes.White;
-            ClientButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
-
-            ComandaTransportButton.Background = Brushes.White;
-            ComandaTransportButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
-            
-           
+            //MainContentArea.Content = new ComandaTransport();
+            MainContentArea.Content = new HistoryPage();
+            _selected = SelectedButton.Istoric;
+            UpdateButtonVisuals();
         }
+
+
+
 
         // Mouse Enter Event Handlers
         private void ClientButton_MouseEnter(object sender, MouseEventArgs e)
@@ -94,6 +88,15 @@ namespace EmailCompleteApp
             }
         }
 
+      private void ComandaTransportIstorictButton_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (ComandaTransportIstoricButton.Background != new SolidColorBrush(Color.FromRgb(100, 150, 255)))
+            {
+                ComandaTransportIstoricButton.Background = new SolidColorBrush(Color.FromRgb(100, 150, 255));
+                ComandaTransportIstoricButton.Foreground = Brushes.White;
+            }
+        }
+
 
         // Mouse Leave Event Handlers
         private void ClientButton_MouseLeave(object sender, MouseEventArgs e)
@@ -115,17 +118,15 @@ namespace EmailCompleteApp
         private void LocationButton_MouseLeave(object sender, MouseEventArgs e)
         {
 
-            if (MainContentArea.Content is ClientPage)
+            // If the currently displayed content is the Location page, keep the selected state
+            if (MainContentArea.Content is LocationPage)
             {
-                // Keep selected state - do nothing
                 return;
             }
-            else
-            {
-                // Reset to default state
-                LocationButtonPage.Background = Brushes.White;
-                LocationButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
-            }
+
+            // Otherwise reset to default
+            LocationButtonPage.Background = Brushes.White;
+            LocationButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
         }
 
         private void ComandaTransport_MouseLeave(object sender, MouseEventArgs e)
@@ -143,6 +144,60 @@ namespace EmailCompleteApp
                 ComandaTransportButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
             }
         }
+
+        private void ComandaTransportIstoric_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (MainContentArea.Content is ComandaTransport)
+            {
+                return;
+            }
+            else
+            {
+                ComandaTransportIstoricButton.Background = Brushes.White;
+                ComandaTransportIstoricButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+            }
+        }
+
+        private void UpdateButtonVisuals()
+        {
+            // Reset all to default first
+            ClientButtonPage.Background = Brushes.White;
+            ClientButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+
+            ComandaTransportButton.Background = Brushes.White;
+            ComandaTransportButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+
+            LocationButtonPage.Background = Brushes.White;
+            LocationButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+
+            ComandaTransportIstoricButton.Background = Brushes.White;
+            ComandaTransportIstoricButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
+
+
+            // Apply selected visuals
+            var selectedBrush = new SolidColorBrush(Color.FromRgb(100, 150, 255));
+            switch (_selected)
+            {
+                case SelectedButton.Client:
+                    ClientButtonPage.Background = selectedBrush;
+                    ClientButtonPage.Foreground = Brushes.White;
+                    break;
+                case SelectedButton.Location:
+                    LocationButtonPage.Background = selectedBrush;
+                    LocationButtonPage.Foreground = Brushes.White;
+                    break;
+                case SelectedButton.Comanda:
+                    ComandaTransportButton.Background = selectedBrush;
+                    ComandaTransportButton.Foreground = Brushes.White;
+                    break;
+                case SelectedButton.Istoric:
+                    ComandaTransportIstoricButton.Background = selectedBrush;
+                    ComandaTransportIstoricButton.Foreground = Brushes.White;
+                    break;
+            }
+        }
+
+        
 
         
         // Minimize Button Event Handlers

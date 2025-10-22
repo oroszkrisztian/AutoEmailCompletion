@@ -8,6 +8,8 @@ namespace EmailCompleteApp.Models
 {
     public class Client
     {
+        private int _id;
+        private static int _nextId = 1;
         private string _name;
         private string _address;
         private string _bank;
@@ -24,6 +26,15 @@ namespace EmailCompleteApp.Models
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException("Name cannot be empty or whitespace.", nameof(Name));
                 _name = value;
+            }
+        }
+
+        public int Id
+        {
+            get => _id;
+            set 
+            {
+               _id = value;
             }
         }
 
@@ -89,6 +100,7 @@ namespace EmailCompleteApp.Models
             if (iban == null)
                 throw new ArgumentNullException(nameof(iban), "IBAN cannot be null.");
             
+            _id = _nextId++;
             _name = name;
             _address = address;
             _bank = bank;
@@ -98,16 +110,8 @@ namespace EmailCompleteApp.Models
             _termenulDePlata = termenulDePlata ?? string.Empty;
         }
 
-        public override string ToString()
-        {
-            return $"Client Information:\n" +
-                   $"Name: {Name}\n" +
-                   $"Address: {Address}\n" +
-                   $"Bank: {Bank}\n" +
-                   $"IBAN: {IBAN}\n" +
-                   $"VAT: {VATNumber}\n" +
-                   $"Camera de Comert: {CameraDeComert}\n" +
-                   $"Termenul de plata: {TermenulDePlata}";
-        }
+
+
+        
     }
 }

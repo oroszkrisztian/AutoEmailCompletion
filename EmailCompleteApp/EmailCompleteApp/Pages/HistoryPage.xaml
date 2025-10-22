@@ -1,0 +1,117 @@
+﻿<UserControl x:Class="EmailCompleteApp.Pages.HistoryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EmailCompleteApp.Pages"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- Light theme color scheme -->
+        <SolidColorBrush x:Key="BackgroundColor" Color="#F8F9FA"/>
+        <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#007BFF"/>
+        <SolidColorBrush x:Key="TextColor" Color="#212529"/>
+        <SolidColorBrush x:Key="SendEmailHover" Color="#20C997"/>
+        <SolidColorBrush x:Key="BorderColor" Color="Black"/>
+        <SolidColorBrush x:Key="BorderFocus" Color="#007BFF"/>
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextColor}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource PrimaryColor}"/>
+        </Style>
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="{StaticResource BackgroundColor}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Title -->
+            <RowDefinition Height="Auto"/>
+            <!-- Header -->
+            <RowDefinition Height="*"/>
+            <!-- Scrollable content -->
+        </Grid.RowDefinitions>
+
+        <!--TITLE -->
+        <TextBlock Grid.Row="0"
+               Text="Istoric"
+               FontSize="24"
+               FontWeight="Bold"
+               Foreground="{StaticResource TextColor}"
+               HorizontalAlignment="Center"
+               Margin="0,10"/>
+
+        <!-- HEADER ROW -->
+        <Grid Grid.Row="1"
+              Background="#FFEFEFEF"
+              Height="Auto"
+              TextBlock.TextAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Numar Comanda" FontSize="14" FontWeight="Bold"
+               TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="Client" FontSize="14" FontWeight="Bold"
+               TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock Grid.Column="2" Text="X/r cam client" FontSize="14" FontWeight="Bold"
+               TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock Grid.Column="3" Text="Ruta" FontSize="14" FontWeight="Bold"
+               TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock Grid.Column="4" Text="Transportator" FontSize="14" FontWeight="Bold"
+               TextWrapping="Wrap" TextAlignment="Center"/>
+        </Grid>
+
+
+        <!--  SCROLLABLE CONTENT -->
+        <!--.ScrollChanged="ListBox_ScrollChanged"-->
+        <ListBox Grid.Row="2"
+             ItemsSource="{Binding Items, Mode=TwoWay}"
+             VirtualizingStackPanel.IsVirtualizing="True"
+             VirtualizingStackPanel.VirtualizationMode="Recycling"
+             
+             BorderThickness="0"
+             Background="Transparent">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Height="40">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding Data}" TextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Expeditor}" TextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Destinatar}" TextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="{Binding Subiect}" TextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="4" Text="{Binding Status}" TextAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+
+</UserControl>

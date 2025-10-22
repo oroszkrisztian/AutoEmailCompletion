@@ -180,6 +180,26 @@
                             </Button.Template>
                         </Button>
 
+                        <Button x:Name="ComandaTransportIstoricButton"
+                                 Content="Istoric"
+                                 Margin="10"
+                                 Background="White"
+                                 Foreground="#272537"
+                                 Click="ComandaTransportIstorict_Click"
+                                 MouseEnter="ComandaTransportIstorictButton_MouseEnter"
+                                 MouseLeave="ComandaTransportIstoric_MouseLeave">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                          VerticalAlignment="Center"
+                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>             
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
                         
 
                     </StackPanel>

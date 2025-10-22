@@ -7,6 +7,7 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <local:TabIndexToHeaderConverter x:Key="TabIndexToHeaderConverter"/>
         <SolidColorBrush x:Key="BackgroundColor" Color="#F8F9FA"/>
         <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="PrimaryColor" Color="#007BFF"/>
@@ -36,7 +37,6 @@
             <Setter Property="Height" Value="40"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
-        <!-- Tab ToggleButton Style -->
         <Style x:Key="TabToggleButtonStyle" TargetType="ToggleButton">
             <Setter Property="Background" Value="#E9ECEF"/>
             <Setter Property="Foreground" Value="#212529"/>
@@ -84,7 +84,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock x:Name="PageTitle"
-                   Text="{Binding SelectedItem.Header, ElementName=ModeTabControl}"
+                   Text="{Binding SelectedTabIndex, Converter={StaticResource TabIndexToHeaderConverter}}"
                    FontSize="24"
                    FontWeight="Bold"
                    Margin="0,0,20,0"
@@ -100,7 +100,7 @@
                     Cursor="Hand"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Click="InsertClick"
+                    Command="{Binding InsertCommand}"
                     Grid.Column="1">
                 <Button.Style>
                     <Style TargetType="Button">
@@ -127,31 +127,31 @@
         </Grid>
 
         <!-- Inputs -->
-        <TabControl x:Name="ModeTabControl" Grid.Row="1" Margin="20,20,20,20">
+        <TabControl x:Name="ModeTabControl" Grid.Row="1" Margin="20,20,20,20" SelectedIndex="{Binding SelectedTabIndex}">
             <!-- Client Tab -->
             <TabItem Header="Client">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
                         <TextBlock Text="Nume client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientName" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                        <TextBox Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
                         
                         <TextBlock Text="Adresa client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientAddress" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding ClientAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="Banca client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientBank" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding ClientBank, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="IBAN client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientIban" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding ClientIban, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="VAT number:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
-                        <TextBox x:Name="ClientVatNumber" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding ClientVatNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="Camera de Comert:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientCameraDeComert" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding ClientCameraDeComert, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="Termenul de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="ClientTermenPlata" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding ClientTermenPlata, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -161,25 +161,25 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
                         <TextBlock Text="Nume transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorName" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                        <TextBox Text="{Binding TransportatorName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
                         
                         <TextBlock Text="Adresa transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorAdresa" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorAdresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="Banca transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorContBancar" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorContBancar, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                         
                         <TextBlock Text="IBAN transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorIban" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorIban, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
 
                         <TextBlock Text="VAT number:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
-                        <TextBox x:Name="TransportatorVatNumber" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorVatNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
 
                         <TextBlock Text="Camera de Comert:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorCameraDeComert" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorCameraDeComert, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
 
                         <TextBlock Text="Termenul de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="TransportatorTermenPlata" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <TextBox Text="{Binding TransportatorTermenPlata, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
