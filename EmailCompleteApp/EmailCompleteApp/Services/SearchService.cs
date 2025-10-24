@@ -46,65 +46,22 @@ namespace EmailCompleteApp.Services
             
         }
 
-        public async Task<List<string>> SearchClientNamesAsync(string searchText)
+
+        public async Task<List<Location>> SearchLocationsAsync(string searchText)
         {
             await EnsureDataLoadedAsync();
+            
 
-            if (string.IsNullOrWhiteSpace(searchText))
-                return _allClients.Take(10).Select(c => c.Name).ToList();
-
-            return _allClients
-                .Where(client => client.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .Take(10)
-                .Select(c => c.Name)
-                .ToList();
-        }
-
-        public async Task<List<string>> SearchTransportatorNamesAsync(string searchText)
-        {
-            await EnsureDataLoadedAsync();
-
-            if (string.IsNullOrWhiteSpace(searchText))
-                return _allTransportators.Take(10).Select(t => t.Name).ToList();
-
-            return _allTransportators
-                .Where(transportator => transportator.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .Take(10)
-                .Select(t => t.Name)
-                .ToList();
-        }
-
-        public async Task<List<string>> SearchLocationAddressesAsync(string searchText)
-        {
-            await EnsureDataLoadedAsync();
-
-            if (string.IsNullOrWhiteSpace(searchText))
-                return _allLocations.Take(10).Select(l => l.Address).ToList();
-
+            if (string.IsNullOrWhiteSpace(searchText)) 
+            {
+                return _allLocations.Take(10).ToList();
+            }
+                
             return _allLocations
-                .Where(location => location.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) || 
+                .Where(location => location.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                                   location.Address.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                 .Take(10)
-                .Select(l => l.Address)
                 .ToList();
-        }
-
-        public async Task<List<string>> GetAllClientNamesAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allClients.Select(c => c.Name).ToList();
-        }
-
-        public async Task<List<string>> GetAllTransportatorNamesAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allTransportators.Select(t => t.Name).ToList();
-        }
-
-        public async Task<List<string>> GetAllLocationAddressesAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allLocations.Select(l => l.Address).ToList();
         }
 
         
@@ -162,9 +119,9 @@ namespace EmailCompleteApp.Services
                     LoadLocationsFromSheet(workbook, "Locations");
 
                     //Load HistoryTransports
-                    ProgressChanged?.Invoke("Loading history transports...");
-                    DetailChanged?.Invoke("Reading history transport data from Excel");
-                    LoadHistoryTransportsFromSheet(workbook, "HistoryTransports");
+                    //ProgressChanged?.Invoke("Loading history transports...");
+                    //DetailChanged?.Invoke("Reading history transport data from Excel");
+                    //LoadHistoryTransportsFromSheet(workbook, "HistoryTransports");
 
                     ProgressChanged?.Invoke("Finalizing...");
                     DetailChanged?.Invoke("Data loading complete");
@@ -254,19 +211,19 @@ namespace EmailCompleteApp.Services
                     try
                     {
                         var id = targetSheet.Cell(row, 1).GetValue<int>();
+                        int parsedId = int.TryParse(id.ToString(), out parsedId) ? parsedId : 0;
                         var name = targetSheet.Cell(row, 2).GetString();
                         var address = targetSheet.Cell(row, 3).GetString();
                         var bank = targetSheet.Cell(row, 4).GetString();
-                        var iban = targetSheet.Cell(row, 5).GetString();
+                        var iban = targetSheet.Cell(row, 5).GetString().ToUpper();
                         var vat = targetSheet.Cell(row, 6).GetString();
                         var camera = targetSheet.Cell(row, 7).GetString();
                         var termen = targetSheet.Cell(row, 8).GetString();
                         
                         if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(address))
                         {
-                            var client = new Client(name.Trim(), address.Trim(), bank?.Trim() ?? "", iban?.Trim() ?? "",
+                            var client = new Client(parsedId, name.Trim(), address.Trim(), bank?.Trim() ?? "", iban?.Trim() ?? "",
                                                   vat?.Trim() ?? "", camera?.Trim() ?? "", termen?.Trim() ?? "");
-                            client.Id = id;
                             _allClients.Add(client);
                         }
                     }
@@ -279,6 +236,7 @@ namespace EmailCompleteApp.Services
                 
                 // Sort the list 
                 _allClients.Sort((c1, c2) => string.Compare(c1.Name, c2.Name, StringComparison.OrdinalIgnoreCase));
+                
             }
             catch (Exception ex)
             {
@@ -308,19 +266,19 @@ namespace EmailCompleteApp.Services
                     try
                     {
                         var id = targetSheet.Cell(row, 1).GetValue<int>();
+                        int parsedId = int.TryParse(id.ToString(), out parsedId) ? parsedId : 0;
                         var name = targetSheet.Cell(row, 2).GetString();
                         var address = targetSheet.Cell(row, 3).GetString();
                         var bank = targetSheet.Cell(row, 4).GetString();
-                        var iban = targetSheet.Cell(row, 5).GetString();
+                        var iban = targetSheet.Cell(row, 5).GetString().ToUpper();
                         var vat = targetSheet.Cell(row, 6).GetString();
                         var camera = targetSheet.Cell(row, 7).GetString();
                         var termen = targetSheet.Cell(row, 8).GetString();
                         
                         if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(address))
                         {
-                            var transportator = new Transportator(name.Trim(), address.Trim(), bank?.Trim() ?? "", iban?.Trim() ?? "",
+                            var transportator = new Transportator(parsedId, name.Trim(), address.Trim(), bank?.Trim() ?? "", iban?.Trim() ?? "",
                                                                 vat?.Trim() ?? "", camera?.Trim() ?? "", termen?.Trim() ?? "");
-                            transportator.Id = id;
                             _allTransportators.Add(transportator);
                         }
                     }
@@ -364,10 +322,11 @@ namespace EmailCompleteApp.Services
                         var id = targetSheet.Cell(row, 1).GetValue<int>();
                         var name = targetSheet.Cell(row, 2).GetString();
                         var address = targetSheet.Cell(row, 3).GetString();
-                        
+                        var city = targetSheet.Cell(row, 4).GetString();
+
                         if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(address))
                         {
-                            var location = new Location(id, name.Trim(), address.Trim());
+                            var location = new Location(id, name.Trim(), address.Trim(), city.Trim());
                             _allLocations.Add(location);
                         }
                     }
@@ -513,7 +472,7 @@ namespace EmailCompleteApp.Services
         public async Task AddLocationToMemoryAsync(Location location)
         {
             await EnsureDataLoadedAsync(); // Ensure data is loaded first
-            if (_allLocations.Any(l => l.Id == location.Id)) return; // Avoid duplicates
+            if (_allLocations.Any(l => l.Id == location.Id)) return; 
             _allLocations.Add(location);
             _allLocations.Sort((l1, l2) => string.Compare(l1.Name, l2.Name, StringComparison.OrdinalIgnoreCase));
         }

@@ -101,6 +101,11 @@
             <!-- Firm Address -->
             <TextBlock Text="Adresa locatie:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
             <TextBox Text="{Binding LocationAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+
+            <!-- Firm City -->
+            <TextBlock Text="Oraș locație:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+            <TextBox Text="{Binding LocationCity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+
         </StackPanel>
        
     </Grid>

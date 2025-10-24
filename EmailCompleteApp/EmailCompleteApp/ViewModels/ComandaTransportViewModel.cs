@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,18 +13,43 @@ using System.Windows;
 using NPOI.XWPF.UserModel;
 using EmailCompleteApp.Services;
 using EmailCompleteApp.Models;
-using System.CodeDom;
 
 namespace EmailCompleteApp.ViewModels
 {
+    /// <summary>
+    /// ViewModel for managing transport order (Comanda Transport) creation and document generation
+    /// </summary>
     public partial class ComandaTransportViewModel : ObservableObject
     {
-        private readonly ClientsViewModel _clientViewmodel;
+        #region Constants
+
+        private const int SearchDebounceDelayMs = 20;
+        private const int MaxSuggestions = 10;
+        private const int InitialSuggestions = 15;
+        private const int MaxParentDirectoryLevels = 6;
+        private const string DocumentFolderName = "doc";
+        private const string TemplateFileName = "comanda.docx";
+        private const string GeneratedFolderName = "Generated";
+        private const string EmailSubject = "Comanda transport";
+        private const string EmailBody = "Va rugam gasiti atasat documentul in format DOCX.";
+        
+        private static readonly string[] MonedaOptions = { "EUR", "RON", "EUR/MT" };
+        private static readonly string[] TipOptions = { "TVA", "ALL IN" };
+        private static readonly string[] TipAdrOptions = { "ADR", "NON-ADR" };
+
+        #endregion
+
+        #region Fields
+
         private readonly SearchService _searchService;
         private CancellationTokenSource? _clientSearchCts;
         private CancellationTokenSource? _transportatorSearchCts;
         private CancellationTokenSource? _incarcareSearchCts;
         private CancellationTokenSource? _descarcareSearchCts;
+
+        #endregion
+
+        #region Observable Properties - Basic Information
 
         [ObservableProperty]
         private string _numarComanda = string.Empty;
@@ -45,6 +69,10 @@ namespace EmailCompleteApp.ViewModels
         [ObservableProperty]
         private int _tipIndex = 0;
 
+        #endregion
+
+        #region Observable Properties - Transportator Information
+
         [ObservableProperty]
         private string _transportator = string.Empty;
 
@@ -56,6 +84,10 @@ namespace EmailCompleteApp.ViewModels
 
         [ObservableProperty]
         private int _transportatorTipIndex = 0;
+
+        #endregion
+
+        #region Observable Properties - Transport Details
 
         [ObservableProperty]
         private DateTime? _dataIncarcare = DateTime.Today;
@@ -81,11 +113,63 @@ namespace EmailCompleteApp.ViewModels
         [ObservableProperty]
         private string _numarInmatriculare = string.Empty;
 
+        #endregion
+
+        #region Observable Properties - Loading Location
+
         [ObservableProperty]
         private string _locatieIncarcare = string.Empty;
+        
+        private string _locatieIncarcareAddress = string.Empty;
+        private string _locatieIncarcareName = string.Empty;
+        private string _locatieIncarcareCity = string.Empty;
+
+        public string LocatieIncarcareAddress
+        {
+            get => _locatieIncarcareAddress;
+            set => SetProperty(ref _locatieIncarcareAddress, value);
+        }
+
+        public string LocatieIncarcareName { 
+            get => _locatieIncarcareName; 
+            set => SetProperty(ref _locatieIncarcareName, value);
+        }
+
+        public string LocatieIncarcareCity { 
+            get => _locatieIncarcareCity; 
+            set => SetProperty(ref _locatieIncarcareCity, value);
+        }
+
+        #endregion
+
+        #region Observable Properties - Unloading Location
 
         [ObservableProperty]
         private string _locatieDescarcare = string.Empty;
+        
+        private string _locatieDescarcareAddress = string.Empty;
+        private string _locatieDescarcareName = string.Empty;
+        private string _locatieDescarcareCity = string.Empty;
+
+        public string LocatieDescarcareAddress
+        {
+            get => _locatieDescarcareAddress;
+            set => SetProperty(ref _locatieDescarcareAddress, value);
+        }
+
+        public string LocatieDescarcareName { 
+            get => _locatieDescarcareName; 
+            set => SetProperty(ref _locatieDescarcareName, value);
+        }
+
+        public string LocatieDescarcareCity { 
+            get => _locatieDescarcareCity; 
+            set => SetProperty(ref _locatieDescarcareCity, value);
+        }
+
+        #endregion
+
+        #region Observable Properties - Payment and UI State
 
         [ObservableProperty]
         private string _termenPlata = string.Empty;
@@ -105,35 +189,42 @@ namespace EmailCompleteApp.ViewModels
         [ObservableProperty]
         private bool _isSendingEmail = false;
 
-        public ObservableCollection<string> ClientSuggestions { get; } = new();
-        public ObservableCollection<string> TransportatorSuggestions { get; } = new();
-        public ObservableCollection<string> IncarcareSuggestions { get; } = new();
-        public ObservableCollection<string> DescarcareSuggestions { get; } = new();
+        #endregion
+
+        #region Collections
+
+        public ObservableCollection<Client> ClientSuggestions { get; } = new();
+        public ObservableCollection<Transportator> TransportatorSuggestions { get; } = new();
+        public ObservableCollection<Location> IncarcareSuggestions { get; } = new();
+        public ObservableCollection<Location> DescarcareSuggestions { get; } = new();
+
+        #endregion
+
+        #region Constructor
 
         public ComandaTransportViewModel()
         {
             _searchService = SearchService.Instance;
-            _clientViewmodel = new ClientsViewModel();
-
-            // Data is already loaded by the time this ViewModel is created,
-            // so we can immediately populate initial suggestions
-            // Load initial suggestions for clients, transportators and locations
             _ = InitializeSuggestionsAsync();
         }
 
-        
-        
+        #endregion
+
+        #region Initialization
+
+        /// <summary>
+        /// Initialize suggestions for all autocomplete fields
+        /// </summary>
         private async Task InitializeSuggestionsAsync()
         {
             try
             {
-                // Pre-load a few items for each category to show immediate feedback
                 var clientTask = LoadAllClientsAsync(new CancellationTokenSource());
                 var transportatorTask = LoadAllTransportatorsAsync(new CancellationTokenSource());
-                var locationTask = LoadAllLocationsAsync(new CancellationTokenSource(), IncarcareSuggestions);
-                var locationTask2 = LoadAllLocationsAsync(new CancellationTokenSource(), DescarcareSuggestions);
+                var incarcareTask = LoadAllLocationsAsync(new CancellationTokenSource(), IncarcareSuggestions);
+                var descarcareTask = LoadAllLocationsAsync(new CancellationTokenSource(), DescarcareSuggestions);
                 
-                await Task.WhenAll(clientTask, transportatorTask, locationTask, locationTask2);
+                await Task.WhenAll(clientTask, transportatorTask, incarcareTask, descarcareTask);
                 
                 Debug.WriteLine("SearchService: Initial suggestions loaded");
             }
@@ -143,259 +234,52 @@ namespace EmailCompleteApp.ViewModels
             }
         }
 
+        #endregion
+
+        #region Property Change Handlers
+
         partial void OnClientChanged(string value)
         {
-            // If value is empty, show all clients initially
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                _clientSearchCts?.Cancel();
-                _clientSearchCts = new CancellationTokenSource();
-                _ = LoadAllClientsAsync(_clientSearchCts);
-                return;
-            }
-            
-            // Don't trigger search if it's one of the suggestions (prevents loops)
-            if (ClientSuggestions.Contains(value))
-            {
-                return;
-            }
-
-            _clientSearchCts?.Cancel();
-            _clientSearchCts = new CancellationTokenSource();
-            _ = SearchWithDebounceAsync(value, SearchClientAsync, _clientSearchCts);
+            HandleSearchPropertyChange(
+                value,
+                ClientSuggestions,
+                ref _clientSearchCts,
+                c => c.Name == value,
+                LoadAllClientsAsync,
+                SearchClientAsync
+            );
         }
 
         partial void OnTransportatorChanged(string value)
         {
-            // If value is empty, show all transportators initially
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                _transportatorSearchCts?.Cancel();
-                _transportatorSearchCts = new CancellationTokenSource();
-                _ = LoadAllTransportatorsAsync(_transportatorSearchCts);
-                return;
-            }
-            
-            // Don't trigger search if it's one of the suggestions (prevents loops)
-            if (TransportatorSuggestions.Contains(value))
-            {
-                return;
-            }
-
-            _transportatorSearchCts?.Cancel();
-            _transportatorSearchCts = new CancellationTokenSource();
-            _ = SearchWithDebounceAsync(value, SearchTransportatorAsync, _transportatorSearchCts);
+            HandleSearchPropertyChange(
+                value,
+                TransportatorSuggestions,
+                ref _transportatorSearchCts,
+                t => t.Name == value,
+                LoadAllTransportatorsAsync,
+                SearchTransportatorAsync
+            );
         }
 
         partial void OnLocatieIncarcareChanged(string value)
         {
-            // If value is empty, show all locations initially
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                _incarcareSearchCts?.Cancel();
-                _incarcareSearchCts = new CancellationTokenSource();
-                _ = LoadAllLocationsAsync(_incarcareSearchCts, IncarcareSuggestions);
-                return;
-            }
-            
-            // Don't trigger search if it's one of the suggestions (prevents loops)
-            if (IncarcareSuggestions.Contains(value))
-            {
-                return;
-            }
-
-            _incarcareSearchCts?.Cancel();
-            _incarcareSearchCts = new CancellationTokenSource();
-            _ = SearchWithDebounceAsync(value, SearchIncarcareAsync, _incarcareSearchCts);
+            HandleLocationSearchChange(
+                value,
+                IncarcareSuggestions,
+                ref _incarcareSearchCts,
+                SearchIncarcareAsync
+            );
         }
 
         partial void OnLocatieDescarcareChanged(string value)
         {
-            // If value is empty, show all locations initially
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                _descarcareSearchCts?.Cancel();
-                _descarcareSearchCts = new CancellationTokenSource();
-                _ = LoadAllLocationsAsync(_descarcareSearchCts, DescarcareSuggestions);
-                return;
-            }
-            
-            // Don't trigger search if it's one of the suggestions (prevents loops)
-            if (DescarcareSuggestions.Contains(value))
-            {
-                return;
-            }
-
-            _descarcareSearchCts?.Cancel();
-            _descarcareSearchCts = new CancellationTokenSource();
-            _ = SearchWithDebounceAsync(value, SearchDescarcareAsync, _descarcareSearchCts);
-        }
-
-        private async Task SearchWithDebounceAsync(string searchText, Func<string, CancellationToken, Task> searchAction, CancellationTokenSource cancellationTokenSource)
-        {
-            try
-            {
-                // Minimal delay since we're now searching in memory - much faster!
-                await Task.Delay(20, cancellationTokenSource.Token);
-                await searchAction(searchText, cancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when search is cancelled
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Search error: {ex.Message}");
-            }
-        }
-
-        private async Task SearchClientAsync(string searchText, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                return;
-            }
-
-            var results = await _searchService.SearchClientNamesAsync(searchText.Trim());
-            
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                ClientSuggestions.Clear();
-                foreach (var name in results.Take(10)) // Limit to 10 suggestions
-                {
-                    ClientSuggestions.Add(name);
-                }
-            }
-        }
-
-        private async Task SearchTransportatorAsync(string searchText, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                return;
-            }
-
-            var results = await _searchService.SearchTransportatorNamesAsync(searchText.Trim());
-            
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                TransportatorSuggestions.Clear();
-                foreach (var name in results.Take(10)) // Limit to 10 suggestions
-                {
-                    TransportatorSuggestions.Add(name);
-                }
-            }
-        }
-
-        private async Task SearchIncarcareAsync(string searchText, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                return;
-            }
-
-            var results = await _searchService.SearchLocationAddressesAsync(searchText.Trim());
-            
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                IncarcareSuggestions.Clear();
-                foreach (var address in results.Take(10)) // Limit to 10 suggestions
-                {
-                    IncarcareSuggestions.Add(address);
-                }
-            }
-        }
-
-        private async Task SearchDescarcareAsync(string searchText, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                return;
-            }
-
-            var results = await _searchService.SearchLocationAddressesAsync(searchText.Trim());
-            
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                DescarcareSuggestions.Clear();
-                foreach (var address in results.Take(10)) // Limit to 10 suggestions
-                {
-                    DescarcareSuggestions.Add(address);
-                }
-            }
-        }
-
-        [RelayCommand]
-        private async Task SelectClient(string? clientName)
-        {
-            if (!string.IsNullOrEmpty(clientName))
-            {
-                Client = clientName;
-                IsClientDropDownOpen = false;
-                _clientSearchCts?.Cancel();
-                
-                // Auto-populate payment terms from client data
-                var paymentTerms = await GetTermenPlataAsync(clientName);
-                if (!string.IsNullOrEmpty(paymentTerms))
-                {
-                    TermenPlata = paymentTerms;
-                }
-            }
-        }
-
-        [RelayCommand]
-        private void SelectTransportator(string? transportatorName)
-        {
-            if (!string.IsNullOrEmpty(transportatorName))
-            {
-                Transportator = transportatorName;
-                IsTransportatorDropDownOpen = false;
-                _transportatorSearchCts?.Cancel();
-            }
-        }
-
-        [RelayCommand]
-        private void SelectIncarcareLocation(string? location)
-        {
-            if (!string.IsNullOrEmpty(location))
-            {
-                LocatieIncarcare = location;
-                IsIncarcareDropDownOpen = false;
-                _incarcareSearchCts?.Cancel();
-            }
-        }
-
-        [RelayCommand]
-        private void SelectDescarcareLocation(string? location)
-        {
-            if (!string.IsNullOrEmpty(location))
-            {
-                LocatieDescarcare = location;
-                IsDescarcareDropDownOpen = false;
-                _descarcareSearchCts?.Cancel();
-            }
-        }
-
-        [RelayCommand(CanExecute = nameof(CanSendEmail))]
-        private async Task SendEmailAsync()
-        {
-            if (IsSendingEmail) return;
-            
-            IsSendingEmail = true;
-            
-            try
-            {
-                await GenerateAndSendDocumentAsync();
-                await SaveDataInHistoryExcel();
-            }
-            finally
-            {
-                IsSendingEmail = false;
-            }
-        }
-
-        private bool CanSendEmail() {
-            return !IsSendingEmail && !string.IsNullOrWhiteSpace(NumarComanda);
+            HandleLocationSearchChange(
+                value,
+                DescarcareSuggestions,
+                ref _descarcareSearchCts,
+                SearchDescarcareAsync
+            );
         }
 
         partial void OnIsSendingEmailChanged(bool value)
@@ -408,42 +292,404 @@ namespace EmailCompleteApp.ViewModels
             SendEmailCommand.NotifyCanExecuteChanged();
         }
 
+        #endregion
+
+        #region Search Helper Methods
+
+        /// <summary>
+        /// Generic handler for search property changes
+        /// </summary>
+        private void HandleSearchPropertyChange<T>(
+            string value,
+            ObservableCollection<T> suggestions,
+            ref CancellationTokenSource? cts,
+            Func<T, bool> matchPredicate,
+            Func<CancellationTokenSource, Task> loadAllAction,
+            Func<string, CancellationToken, Task> searchAction)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                cts?.Cancel();
+                cts = new CancellationTokenSource();
+                _ = loadAllAction(cts);
+                return;
+            }
+            
+            if (suggestions.Any(matchPredicate))
+            {
+                return;
+            }
+
+            cts?.Cancel();
+            cts = new CancellationTokenSource();
+            _ = SearchWithDebounceAsync(value, searchAction, cts);
+        }
+
+        /// <summary>
+        /// Specialized handler for location search property changes
+        /// </summary>
+        private void HandleLocationSearchChange(
+            string value,
+            ObservableCollection<Location> suggestions,
+            ref CancellationTokenSource? cts,
+            Func<string, CancellationToken, Task> searchAction)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                cts?.Cancel();
+                cts = new CancellationTokenSource();
+                _ = LoadAllLocationsAsync(cts, suggestions);
+                return;
+            }
+            
+            if (suggestions.Any(l => l.DisplayAddress == value))
+            {
+                return;
+            }
+
+            cts?.Cancel();
+            cts = new CancellationTokenSource();
+            _ = SearchWithDebounceAsync(value, searchAction, cts);
+        }
+
+        /// <summary>
+        /// Debounced search execution to avoid excessive API calls
+        /// </summary>
+        private async Task SearchWithDebounceAsync(
+            string searchText, 
+            Func<string, CancellationToken, Task> searchAction, 
+            CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                await Task.Delay(SearchDebounceDelayMs, cancellationTokenSource.Token);
+                await searchAction(searchText, cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when search is cancelled
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Search error: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Search Methods
+
+        private async Task SearchClientAsync(string searchText, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return;
+            }
+
+            var allClients = await _searchService.GetAllClientsAsync();
+            var results = allClients
+                .Where(c => c.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase))
+                .Take(MaxSuggestions)
+                .ToList();
+            
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                UpdateCollection(ClientSuggestions, results);
+            }
+        }
+
+        private async Task SearchTransportatorAsync(string searchText, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return;
+            }
+
+            var allTransportators = await _searchService.GetAllTransportatorsAsync();
+            var results = allTransportators
+                .Where(t => t.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase))
+                .Take(MaxSuggestions)
+                .ToList();
+            
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                UpdateCollection(TransportatorSuggestions, results);
+            }
+        }
+
+        private async Task SearchIncarcareAsync(string searchText, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return;
+            }
+
+            var results = await _searchService.SearchLocationsAsync(searchText.Trim());
+            
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                UpdateCollection(IncarcareSuggestions, results.Take(MaxSuggestions).ToList());
+            }
+        }
+
+        private async Task SearchDescarcareAsync(string searchText, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return;
+            }
+
+            var results = await _searchService.SearchLocationsAsync(searchText.Trim());
+            
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                UpdateCollection(DescarcareSuggestions, results.Take(MaxSuggestions).ToList());
+            }
+        }
+
+        #endregion
+
+        #region Load All Methods
+
+        private async Task LoadAllClientsAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                var results = await _searchService.GetAllClientsAsync();
+                
+                if (!cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    UpdateCollection(ClientSuggestions, results.Take(InitialSuggestions).ToList());
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancelled
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load all clients error: {ex.Message}");
+            }
+        }
+
+        private async Task LoadAllTransportatorsAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                var results = await _searchService.GetAllTransportatorsAsync();
+                
+                if (!cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    UpdateCollection(TransportatorSuggestions, results.Take(InitialSuggestions).ToList());
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancelled
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load all transportators error: {ex.Message}");
+            }
+        }
+
+        private async Task LoadAllLocationsAsync(CancellationTokenSource cancellationTokenSource, ObservableCollection<Location> targetCollection)
+        {
+            try
+            {
+                var results = await _searchService.GetAllLocationsAsync();
+                
+                if (!cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    UpdateCollection(targetCollection, results.Take(InitialSuggestions).ToList());
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancelled
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load all locations error: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Collection Helper Methods
+
+        /// <summary>
+        /// Update observable collection with new items
+        /// </summary>
+        private void UpdateCollection<T>(ObservableCollection<T> collection, List<T> items)
+        {
+            collection.Clear();
+            foreach (var item in items)
+            {
+                collection.Add(item);
+            }
+        }
+
+        #endregion
+
+        #region Selection Commands
+
+        [RelayCommand]
+        private async Task SelectClient(string? clientName)
+        {
+            if (!string.IsNullOrEmpty(clientName))
+            {
+                Client = clientName;
+                IsClientDropDownOpen = false;
+                _clientSearchCts?.Cancel();
+                
+                var paymentTerms = await GetTermenPlataForClientAsync(clientName);
+                if (!string.IsNullOrEmpty(paymentTerms))
+                {
+                    TermenPlata = paymentTerms;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update payment terms from selected client
+        /// </summary>
+        public Task GetTermenPlata(Transportator transportator)
+        {
+            if (transportator != null)
+            {
+                TermenPlata = transportator.TermenulDePlata;
+            }
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Update pickup location details
+        /// </summary>
+        public Task UpdatePickupLocation(Location location)
+        {
+            if (location != null) 
+            {
+                LocatieIncarcareAddress = location.Address;
+                LocatieIncarcareCity = location.City;
+                LocatieIncarcareName = location.Name;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Update delivery location details
+        /// </summary>
+        public Task UpdateDeliveryLocation(Location location)
+        {
+            if (location != null)
+            {
+                LocatieDescarcareAddress = location.Address;
+                LocatieDescarcareCity = location.City;
+                LocatieDescarcareName = location.Name;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        #endregion
+
+        #region Data Retrieval Methods
+
+        private async Task<string> GetTermenPlataForClientAsync(string clientName)
+        {
+            try
+            {
+                var client = await _searchService.GetClientByNameAsync(clientName);
+                return client?.TermenulDePlata ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting termen plata for client {clientName}: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        private async Task<string> GetTermenPlataForTransportatorAsync(string transportatorName)
+        {
+            try
+            {
+                var transportator = await _searchService.GetTransportatorByNameAsync(transportatorName);
+                return transportator?.TermenulDePlata ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting termen plata for transportator {transportatorName}: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        #endregion
+
+        #region Send Email Command
+
+        [RelayCommand(CanExecute = nameof(CanSendEmail))]
+        private async Task SendEmailAsync()
+        {
+            if (IsSendingEmail) return;
+            
+            IsSendingEmail = true;
+            
+            try
+            {
+                await GenerateAndSendDocumentAsync();
+                //maybe for later implementation
+                //await SaveDataInHistoryExcel();
+            }
+            finally
+            {
+                IsSendingEmail = false;
+            }
+        }
+
+        private bool CanSendEmail()
+        {
+            return !IsSendingEmail && !string.IsNullOrWhiteSpace(NumarComanda);
+        }
+
+        #endregion
+
+        #region Document Generation
+
         private async Task GenerateAndSendDocumentAsync()
         {
             try
             {
                 string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
-                string projectDir = FindProjectDirWithDoc(projectRoot);
-                string docDir = Path.Combine(projectDir, "doc");
-                string mergedTemplatePath = Path.Combine(docDir, "comanda.docx");
+                string projectDir = FindProjectDirectory(projectRoot);
+                string docDir = Path.Combine(projectDir, DocumentFolderName);
+                string templatePath = Path.Combine(docDir, TemplateFileName);
 
-                if (!File.Exists(mergedTemplatePath))
+                if (!File.Exists(templatePath))
                 {
-                    ShowError($"No template found. Add 'comanda.docx' under: {docDir}", "Template Missing");
+                    ShowError($"No template found. Add '{TemplateFileName}' under: {docDir}", "Template Missing");
                     return;
                 }
 
-                string generatedDir = Path.Combine(docDir, "Generated");
+                string generatedDir = Path.Combine(docDir, GeneratedFolderName);
                 Directory.CreateDirectory(generatedDir);
 
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
-                var replacements = await BuildCombinedReplacements();
-                string mergedOutputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {timestamp}.docx");
+                string outputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {timestamp}.docx");
+                
+                var replacements = await BuildReplacementDictionary();
+                
+                bool success = GenerateWordDocument(templatePath, outputPath, replacements);
 
-                // Generate the document
-                GenerateWordDocumentFromTemplate(mergedTemplatePath, mergedOutputPath, replacements);
-
-                // Try to create email
-                bool emailCreated = await TryCreateOutlookEmailAsync(mergedOutputPath);
-
-                if (emailCreated)
+                if (success)
                 {
-                    ShowSuccess($"DOCX generated and email draft opened.\n\nDOCX: {mergedOutputPath}", "Ready to Send");
+                    ResetInputFields();
+                    ShowSuccess($"DOCX generated and email draft opened.\n\nDOCX: {outputPath}", "Ready to Send");
                 }
                 else
                 {
-                    // Fallback to opening document directly
-                    await TryOpenDocumentAsync(mergedOutputPath);
+                    await TryOpenDocumentAsync(outputPath);
                 }
             }
             catch (Exception ex)
@@ -452,63 +698,229 @@ namespace EmailCompleteApp.ViewModels
             }
         }
 
-        private async Task SaveDataInHistoryExcel()
+        /// <summary>
+        /// Build dictionary of placeholder replacements for document generation
+        /// </summary>
+        private async Task<Dictionary<string, string>> BuildReplacementDictionary()
+        {
+            DateTime today = DateTime.Today;
+            var termenPlata = await GetTermenPlataForTransportatorAsync(Transportator);
+
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "DataAzi", today.ToString("dd/MM.yyyy") },
+                { "NumarComanda", NumarComanda?.Trim() ?? string.Empty },
+                { "NumarClient", NumarClient?.Trim() ?? string.Empty },
+                { "ClientNume", Client?.Trim() ?? string.Empty },
+                { "Tarif", Tarif?.Trim() ?? string.Empty },
+                { "Moneda", GetOptionValue(MonedaIndex, MonedaOptions) },
+                { "Tip", GetOptionValue(TipIndex, TipOptions) },
+                { "TransportatorNume", Transportator?.Trim() ?? string.Empty },
+                { "TransportatorTarif", TransportatorTarif?.Trim() ?? string.Empty },
+                { "TransportatorMoneda", GetOptionValue(TransportatorMonedaIndex, MonedaOptions) },
+                { "TransportatorTip", GetOptionValue(TransportatorTipIndex, TipOptions) },
+                { "DataIncarcare", DataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "DataDescarcare", DataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "Produs", Produs?.Trim() ?? string.Empty },
+                { "CantitateComanda", Cantitate?.Trim() ?? string.Empty },
+                { "TipADR", GetOptionValue(TipAdrIndex, TipAdrOptions) },
+                { "Clasa", Clasa?.Trim() ?? string.Empty },
+                { "UN", Un?.Trim() ?? string.Empty },
+                { "NumarInmatriculare", NumarInmatriculare?.Trim() ?? string.Empty },
+                { "AdresaIncarcare", LocatieIncarcareAddress?.Trim() ?? string.Empty },
+                { "AddresaIncarcareName", LocatieIncarcareName?.Trim() ?? string.Empty },
+                { "AddresaIncarcareCity", LocatieIncarcareCity?.Trim() ?? string.Empty },             
+                { "AdresaDescarcare", LocatieDescarcareAddress?.Trim() ?? string.Empty },
+                { "AddresaDescarcareName", LocatieDescarcareName?.Trim() ?? string.Empty },
+                { "AddresaDescarcareCity", LocatieDescarcareCity?.Trim() ?? string.Empty },
+                { "TermenPlata", TermenPlata?.Trim() ?? string.Empty }
+            };
+        }
+
+        private static string GetOptionValue(int index, string[] options)
+        {
+            return index >= 0 && index < options.Length ? options[index] : string.Empty;
+        }
+
+        #endregion
+
+        #region Word Document Processing
+
+        private static bool GenerateWordDocument(string templatePath, string outputPath, Dictionary<string, string> replacements)
         {
             try
             {
-                var excelPath = ClientsViewModel.GetDatabaseExcelPath();
-                Directory.CreateDirectory(Path.GetDirectoryName(excelPath)!);
-
-                int numarComandaInt = 0;
-                if (!string.IsNullOrWhiteSpace(NumarComanda))
+                using (var fs = new FileStream(templatePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var document = new XWPFDocument(fs))
                 {
-                    var trimmed = NumarComanda.Trim();
-                    if (!int.TryParse(trimmed, out numarComandaInt))
+                    ReplaceInDocument(document, replacements);
+
+                    using (var outFs = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                     {
-                        Debug.WriteLine($"Warning: could not parse NumarComanda '{trimmed}' to int. Using 0.");
+                        document.Write(outFs);
                     }
                 }
-
-                
-
-                string clientName = Client?.Trim() ?? string.Empty;
-                string camClient = await _searchService.GetClientCameraDeComert(clientName);
-                string route = $"{LocatieIncarcare?.Trim() ?? string.Empty} -> {LocatieDescarcare?.Trim() ?? string.Empty}";
-                string transportator = Transportator?.Trim() ?? string.Empty;
-                DateTime dataTransport = DataIncarcare ?? DateTime.Today;
-
-                var historyEntry = new HistoryTransport(
-                    numarComanda: numarComandaInt,
-                    clientName: clientName,
-                    camClient: camClient,
-                    route: route,
-                    transportator: transportator,
-                    dataTransport: dataTransport
-                );
-                //need to add laterexcel insert
-                await SearchService.Instance.AddHistoryTransportToMemoryAsync(historyEntry);
+                return true;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error saving to history Excel: {ex.Message}");
+                Debug.WriteLine($"Error processing Word document: {ex.Message}");
+                return false;
             }
         }
 
-      
-
-        private static string FindProjectDirWithDoc(string start)
+        private static void ReplaceInDocument(XWPFDocument document, Dictionary<string, string> replacements)
         {
-            string? current = start;
-            for (int i = 0; i < 6 && current != null; i++)
+            // Replace in body paragraphs
+            foreach (var paragraph in document.Paragraphs)
             {
-                string candidate = Path.Combine(current, "doc");
-                if (Directory.Exists(candidate))
-                {
-                    return current;
-                }
-                current = Directory.GetParent(current)?.FullName;
+                ReplaceInParagraph(paragraph, replacements);
             }
-            return start;
+
+            // Replace in tables
+            foreach (var table in document.Tables)
+            {
+                ReplaceInTable(table, replacements);
+            }
+
+            // Replace in headers
+            foreach (var header in document.HeaderList)
+            {
+                foreach (var paragraph in header.Paragraphs)
+                {
+                    ReplaceInParagraph(paragraph, replacements);
+                }
+                foreach (var table in header.Tables)
+                {
+                    ReplaceInTable(table, replacements);
+                }
+            }
+
+            // Replace in footers
+            foreach (var footer in document.FooterList)
+            {
+                foreach (var paragraph in footer.Paragraphs)
+                {
+                    ReplaceInParagraph(paragraph, replacements);
+                }
+                foreach (var table in footer.Tables)
+                {
+                    ReplaceInTable(table, replacements);
+                }
+            }
+        }
+
+        private static void ReplaceInTable(XWPFTable table, Dictionary<string, string> replacements)
+        {
+            foreach (var row in table.Rows)
+            {
+                foreach (var cell in row.GetTableCells())
+                {
+                    foreach (var paragraph in cell.Paragraphs)
+                    {
+                        ReplaceInParagraph(paragraph, replacements);
+                    }
+                    foreach (var innerTable in cell.Tables)
+                    {
+                        ReplaceInTable(innerTable, replacements);
+                    }
+                }
+            }
+        }
+
+        private static void ReplaceInParagraph(XWPFParagraph paragraph, Dictionary<string, string> replacements)
+        {
+            string originalText = paragraph.Text;
+            var runs = paragraph.Runs;
+            bool anyRunChanged = false;
+
+            if (runs != null)
+            {
+                for (int i = 0; i < runs.Count; i++)
+                {
+                    string? text = runs[i].ToString();
+                    if (string.IsNullOrEmpty(text))
+                        continue;
+
+                    string replaced = ReplaceAllTokens(text, replacements);
+                    if (!string.Equals(text, replaced, StringComparison.Ordinal))
+                    {
+                        runs[i].SetText(replaced, 0);
+                        anyRunChanged = true;
+                    }
+                }
+            }
+
+            if (!anyRunChanged)
+            {
+                string newText = ReplaceAllTokens(originalText, replacements);
+                if (!string.Equals(originalText, newText, StringComparison.Ordinal))
+                {
+                    for (int i = paragraph.Runs.Count - 1; i >= 0; i--)
+                    {
+                        paragraph.RemoveRun(i);
+                    }
+                    var run = paragraph.CreateRun();
+                    run.SetText(newText);
+                }
+            }
+        }
+
+        private static string ReplaceAllTokens(string input, Dictionary<string, string> replacements)
+        {
+            string output = input;
+            foreach (var kvp in replacements)
+            {
+                if (string.IsNullOrEmpty(kvp.Key)) continue;
+                output = output.Replace(kvp.Key, kvp.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            }
+            return output;
+        }
+
+        #endregion
+
+        #region Outlook Integration
+
+        private static bool CreateOutlookEmailWithAttachment(string attachmentPath)
+        {
+            if (!File.Exists(attachmentPath))
+                throw new FileNotFoundException("Attachment not found", attachmentPath);
+
+            Type? outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            if (outlookType == null)
+            {
+                return false;
+            }
+
+            object? outlookApp = null;
+            object? mailItem = null;
+            try
+            {
+                outlookApp = Activator.CreateInstance(outlookType);
+                if (outlookApp == null) return false;
+
+                // 0 => olMailItem
+                mailItem = outlookType
+                    .GetMethod("CreateItem")?
+                    .Invoke(outlookApp, new object[] { 0 });
+                if (mailItem == null) return false;
+
+                var mailType = mailItem.GetType();
+                mailType.GetProperty("Subject")?.SetValue(mailItem, EmailSubject);
+                mailType.GetProperty("Body")?.SetValue(mailItem, EmailBody);
+
+                var attachments = mailType.GetProperty("Attachments")?.GetValue(mailItem);
+                var attachmentsType = attachments?.GetType();
+                attachmentsType?.GetMethod("Add")?.Invoke(attachments, new object[] { attachmentPath });
+
+                mailType.GetMethod("Display", new[] { typeof(object) })?.Invoke(mailItem, new object?[] { false });
+                return true;
+            }
+            finally
+            {
+                if (mailItem != null) Marshal.FinalReleaseComObject(mailItem);
+                if (outlookApp != null) Marshal.FinalReleaseComObject(outlookApp);
+            }
         }
 
         private async Task<bool> TryCreateOutlookEmailAsync(string attachmentPath)
@@ -537,6 +949,90 @@ namespace EmailCompleteApp.ViewModels
             }
         }
 
+        #endregion
+
+        #region History Management (Future Implementation)
+
+        /// <summary>
+        /// Save transport order data to history (for future implementation)
+        /// </summary>
+        private async Task SaveDataInHistoryExcel()
+        {
+            try
+            {
+                var excelPath = ClientsViewModel.GetDatabaseExcelPath();
+                Directory.CreateDirectory(Path.GetDirectoryName(excelPath)!);
+
+                int numarComandaInt = 0;
+                if (!string.IsNullOrWhiteSpace(NumarComanda))
+                {
+                    var trimmed = NumarComanda.Trim();
+                    if (!int.TryParse(trimmed, out numarComandaInt))
+                    {
+                        Debug.WriteLine($"Warning: could not parse NumarComanda '{trimmed}' to int. Using 0.");
+                    }
+                }
+
+                string clientName = Client?.Trim() ?? string.Empty;
+                string camClient = await _searchService.GetClientCameraDeComert(clientName);
+                string route = $"{LocatieIncarcare?.Trim() ?? string.Empty} -> {LocatieDescarcare?.Trim() ?? string.Empty}";
+                string transportator = Transportator?.Trim() ?? string.Empty;
+                DateTime dataTransport = DataIncarcare ?? DateTime.Today;
+
+                var historyEntry = new HistoryTransport(
+                    numarComanda: numarComandaInt,
+                    clientName: clientName,
+                    camClient: camClient,
+                    route: route,
+                    transportator: transportator,
+                    dataTransport: dataTransport
+                );
+                
+                await SearchService.Instance.AddHistoryTransportToMemoryAsync(historyEntry);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving to history Excel: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region UI Helper Methods
+
+        /// <summary>
+        /// Reset all input fields to their default values
+        /// </summary>
+        private void ResetInputFields()
+        {
+            NumarComanda = string.Empty;
+            NumarClient = string.Empty;
+            Client = string.Empty;
+            Tarif = string.Empty;
+            MonedaIndex = 0;
+            TipIndex = 0;
+            Transportator = string.Empty;
+            TransportatorTarif = string.Empty;
+            TransportatorMonedaIndex = 0;
+            TransportatorTipIndex = 0;
+            DataIncarcare = DateTime.Today;
+            DataDescarcare = DateTime.Today.AddDays(1);
+            Produs = string.Empty;
+            Cantitate = string.Empty;
+            TipAdrIndex = 0;
+            Clasa = string.Empty;
+            Un = string.Empty;
+            NumarInmatriculare = string.Empty;
+            LocatieIncarcare = string.Empty;
+            LocatieDescarcare = string.Empty;
+            TermenPlata = string.Empty;
+            IsClientDropDownOpen = false;
+            IsTransportatorDropDownOpen = false;
+            IsIncarcareDropDownOpen = false;
+            IsDescarcareDropDownOpen = false;
+            IsSendingEmail = false;
+        }
+
         private static void ShowError(string message, string title)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -555,392 +1051,28 @@ namespace EmailCompleteApp.ViewModels
                 MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning));
         }
 
-        private async Task<Dictionary<string, string>> BuildCombinedReplacements()
+        #endregion
+
+        #region File System Helpers
+
+        /// <summary>
+        /// Find project directory containing the doc folder
+        /// </summary>
+        private static string FindProjectDirectory(string startPath)
         {
-            var monedaOptions = new[] { "EUR", "RON", "EUR/MT" };
-            var tipOptions = new[] { "TVA", "ALL IN" };
-            var tipAdrOptions = new[] { "ADR", "NON-ADR" };
-            DateTime today = DateTime.Today;
-
-            var termenPlata = await GetTermenPlataAsync(Transportator);
-
-            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            string? current = startPath;
+            for (int i = 0; i < MaxParentDirectoryLevels && current != null; i++)
             {
-                { "Data azi", today.ToString("dd/MM.yyyy") },
-                { "Numar Comanda", NumarComanda?.Trim() ?? string.Empty },
-                { "Numar Client", NumarClient?.Trim() ?? string.Empty },
-                { "Client", Client?.Trim() ?? string.Empty },
-                { "Tarif", Tarif?.Trim() ?? string.Empty },
-                { "Moneda", MonedaIndex >= 0 && MonedaIndex < monedaOptions.Length ? monedaOptions[MonedaIndex] : string.Empty },
-                { "Tip", TipIndex >= 0 && TipIndex < tipOptions.Length ? tipOptions[TipIndex] : string.Empty },
-                { "Transportator", Transportator?.Trim() ?? string.Empty },
-                { "Transportator Tarif", TransportatorTarif?.Trim() ?? string.Empty },
-                { "Transportator Moneda", TransportatorMonedaIndex >= 0 && TransportatorMonedaIndex < monedaOptions.Length ? monedaOptions[TransportatorMonedaIndex] : string.Empty },
-                { "Transportator Tip", TransportatorTipIndex >= 0 && TransportatorTipIndex < tipOptions.Length ? tipOptions[TransportatorTipIndex] : string.Empty },
-                { "Data Incarcare", DataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
-                { "Data Descarcare", DataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
-                { "Produs", Produs?.Trim() ?? string.Empty },
-                { "Cantitate", Cantitate?.Trim() ?? string.Empty },
-                { "Tip ADR", TipAdrIndex >= 0 && TipAdrIndex < tipAdrOptions.Length ? tipAdrOptions[TipAdrIndex] : string.Empty },
-                { "Clasa", Clasa?.Trim() ?? string.Empty },
-                { "UN", Un?.Trim() ?? string.Empty },
-                { "Numar Inmatriculare", NumarInmatriculare?.Trim() ?? string.Empty },
-                { "Adresa Incarcare", LocatieIncarcare?.Trim() ?? string.Empty },
-                { "Adresa Descarcare", LocatieDescarcare?.Trim() ?? string.Empty },
-                { "Termen Plata", TermenPlata?.Trim() ?? string.Empty }
-            };
+                string candidate = Path.Combine(current, DocumentFolderName);
+                if (Directory.Exists(candidate))
+                {
+                    return current;
+                }
+                current = Directory.GetParent(current)?.FullName;
+            }
+            return startPath;
         }
 
-        private async Task<string> GetTermenPlataAsync(string transportatorName)
-        {
-            try
-            {
-                var tranportatorFound = await SearchService.Instance.GetTransportatorByNameAsync(transportatorName);
-                return tranportatorFound?.TermenulDePlata ?? string.Empty;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error getting termen plata for client {transportatorName}: {ex.Message}");
-                return string.Empty;
-            }
-        }
-
-        private static void GenerateWordDocumentFromTemplate(string templatePath, string outputPath, Dictionary<string, string> replacements)
-        {
-            try
-            {
-                using (var fs = new FileStream(templatePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (var document = new XWPFDocument(fs))
-                {
-                    // Replace in body paragraphs
-                    foreach (var paragraph in document.Paragraphs)
-                    {
-                        ReplaceInParagraph(paragraph, replacements);
-                    }
-
-                    // Replace in tables
-                    foreach (var table in document.Tables)
-                    {
-                        ReplaceInTable(table, replacements);
-                    }
-
-                    // Replace in headers
-                    foreach (var header in document.HeaderList)
-                    {
-                        foreach (var paragraph in header.Paragraphs)
-                        {
-                            ReplaceInParagraph(paragraph, replacements);
-                        }
-                        foreach (var table in header.Tables)
-                        {
-                            ReplaceInTable(table, replacements);
-                        }
-                    }
-
-                    // Replace in footers
-                    foreach (var footer in document.FooterList)
-                    {
-                        foreach (var paragraph in footer.Paragraphs)
-                        {
-                            ReplaceInParagraph(paragraph, replacements);
-                        }
-                        foreach (var table in footer.Tables)
-                        {
-                            ReplaceInTable(table, replacements);
-                        }
-                    }
-
-                    // Force all text color to black
-                    ForceDocumentTextColorBlack(document);
-
-                    using (var outFs = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
-                    {
-                        document.Write(outFs);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error occurred while processing Word document: {ex.Message}", ex);
-            }
-        }
-
-        private static void ReplaceInTable(XWPFTable table, Dictionary<string, string> replacements)
-        {
-            foreach (var row in table.Rows)
-            {
-                foreach (var cell in row.GetTableCells())
-                {
-                    foreach (var paragraph in cell.Paragraphs)
-                    {
-                        ReplaceInParagraph(paragraph, replacements);
-                    }
-                    foreach (var innerTable in cell.Tables)
-                    {
-                        ReplaceInTable(innerTable, replacements);
-                    }
-                }
-            }
-        }
-
-        private static void ReplaceInParagraph(XWPFParagraph paragraph, Dictionary<string, string> replacements)
-        {
-            string originalParagraphText = paragraph.Text;
-
-            var runs = paragraph.Runs;
-            bool anyRunChanged = false;
-            if (runs != null)
-            {
-                for (int i = 0; i < runs.Count; i++)
-                {
-                    string? text = runs[i].ToString();
-                    if (string.IsNullOrEmpty(text))
-                        continue;
-
-                    string replaced = ReplaceAll(text, replacements);
-                    if (!string.Equals(text, replaced, StringComparison.Ordinal))
-                    {
-                        runs[i].SetText(replaced, 0);
-                        anyRunChanged = true;
-                    }
-                }
-            }
-
-            if (!anyRunChanged)
-            {
-                string newParaText = ReplaceAll(originalParagraphText, replacements);
-                if (!string.Equals(originalParagraphText, newParaText, StringComparison.Ordinal))
-                {
-                    for (int i = paragraph.Runs.Count - 1; i >= 0; i--)
-                    {
-                        paragraph.RemoveRun(i);
-                    }
-                    var run = paragraph.CreateRun();
-                    run.SetText(newParaText);
-                }
-            }
-        }
-
-        private static string ReplaceAll(string input, Dictionary<string, string> replacements)
-        {
-            string output = input;
-            foreach (var kvp in replacements)
-            {
-                if (string.IsNullOrEmpty(kvp.Key)) continue;
-                output = output.Replace(kvp.Key, kvp.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
-            }
-            return output;
-        }
-
-        private static void ForceDocumentTextColorBlack(XWPFDocument document)
-        {
-            var black = "000000";
-
-            void SetRunsBlack(IEnumerable<XWPFRun> runs)
-            {
-                foreach (var run in runs)
-                {
-                    try
-                    {
-                        run.SetColor(black);
-                    }
-                    catch { }
-                }
-            }
-
-            foreach (var paragraph in document.Paragraphs)
-            {
-                SetRunsBlack(paragraph.Runs);
-            }
-
-            foreach (var table in document.Tables)
-            {
-                foreach (var row in table.Rows)
-                {
-                    foreach (var cell in row.GetTableCells())
-                    {
-                        foreach (var paragraph in cell.Paragraphs)
-                        {
-                            SetRunsBlack(paragraph.Runs);
-                        }
-                        foreach (var innerTable in cell.Tables)
-                        {
-                            foreach (var innerRow in innerTable.Rows)
-                            {
-                                foreach (var innerCell in innerRow.GetTableCells())
-                                {
-                                    foreach (var innerPara in innerCell.Paragraphs)
-                                    {
-                                        SetRunsBlack(innerPara.Runs);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Headers
-            foreach (var header in document.HeaderList)
-            {
-                foreach (var paragraph in header.Paragraphs)
-                {
-                    SetRunsBlack(paragraph.Runs);
-                }
-                foreach (var table in header.Tables)
-                {
-                    foreach (var row in table.Rows)
-                    {
-                        foreach (var cell in row.GetTableCells())
-                        {
-                            foreach (var paragraph in cell.Paragraphs)
-                            {
-                                SetRunsBlack(paragraph.Runs);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Footers
-            foreach (var footer in document.FooterList)
-            {
-                foreach (var paragraph in footer.Paragraphs)
-                {
-                    SetRunsBlack(paragraph.Runs);
-                }
-                foreach (var table in footer.Tables)
-                {
-                    foreach (var row in table.Rows)
-                    {
-                        foreach (var cell in row.GetTableCells())
-                        {
-                            foreach (var paragraph in cell.Paragraphs)
-                            {
-                                SetRunsBlack(paragraph.Runs);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static bool CreateOutlookEmailWithAttachment(string attachmentPath)
-        {
-            if (!File.Exists(attachmentPath))
-                throw new FileNotFoundException("Attachment not found", attachmentPath);
-
-            Type? outlookType = Type.GetTypeFromProgID("Outlook.Application");
-            if (outlookType == null)
-            {
-                return false;
-            }
-
-            object? outlookApp = null;
-            object? mailItem = null;
-            try
-            {
-                outlookApp = Activator.CreateInstance(outlookType);
-                if (outlookApp == null) return false;
-
-                // 0 => olMailItem
-                mailItem = outlookType
-                    .GetMethod("CreateItem")?
-                    .Invoke(outlookApp, new object[] { 0 });
-                if (mailItem == null) return false;
-
-                var mailType = mailItem.GetType();
-                mailType.GetProperty("Subject")?.SetValue(mailItem, "Comanda transport");
-                mailType.GetProperty("Body")?.SetValue(mailItem, "Va rugam gasiti atasat documentul in format DOCX.");
-
-                var attachments = mailType.GetProperty("Attachments")?.GetValue(mailItem);
-                var attachmentsType = attachments?.GetType();
-                attachmentsType?.GetMethod("Add")?.Invoke(attachments, new object[] { attachmentPath });
-
-                // Display the email for user to review/send
-                mailType.GetMethod("Display", new[] { typeof(object) })?.Invoke(mailItem, new object?[] { false });
-                return true;
-            }
-            finally
-            {
-                if (mailItem != null) Marshal.FinalReleaseComObject(mailItem);
-                if (outlookApp != null) Marshal.FinalReleaseComObject(outlookApp);
-            }
-        }
-
-        private async Task LoadAllClientsAsync(CancellationTokenSource cancellationTokenSource)
-        {
-            try
-            {
-                var results = await _searchService.GetAllClientNamesAsync();
-                
-                if (!cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    ClientSuggestions.Clear();
-                    foreach (var name in results.Take(15)) // Show more items when showing all
-                    {
-                        ClientSuggestions.Add(name);
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when cancelled
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Load all clients error: {ex.Message}");
-            }
-        }
-
-        private async Task LoadAllTransportatorsAsync(CancellationTokenSource cancellationTokenSource)
-        {
-            try
-            {
-                var results = await _searchService.GetAllTransportatorNamesAsync();
-                
-                if (!cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    TransportatorSuggestions.Clear();
-                    foreach (var name in results.Take(15)) // Show more items when showing all
-                    {
-                        TransportatorSuggestions.Add(name);
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when cancelled
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Load all transportators error: {ex.Message}");
-            }
-        }
-
-        private async Task LoadAllLocationsAsync(CancellationTokenSource cancellationTokenSource, ObservableCollection<string> targetCollection)
-        {
-            try
-            {
-                var results = await _searchService.GetAllLocationAddressesAsync();
-                
-                if (!cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    targetCollection.Clear();
-                    foreach (var address in results.Take(15)) // Show more items when showing all
-                    {
-                        targetCollection.Add(address);
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when cancelled
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Load all locations error: {ex.Message}");
-            }
-        }
+        #endregion
     }
 }

@@ -16,6 +16,7 @@ public partial class LocationViewModel : ObservableObject
     
     [ObservableProperty] private string _locationName = string.Empty;
     [ObservableProperty] private string _locationAddress = string.Empty;
+    [ObservableProperty] private string _locationCity = string.Empty;
 
     [RelayCommand]
     private async void Save()
@@ -24,12 +25,12 @@ public partial class LocationViewModel : ObservableObject
         {
             if (string.IsNullOrWhiteSpace(LocationName)) { Warn("Name is required."); return; }
             if (string.IsNullOrWhiteSpace(LocationAddress)) { Warn("Address is required."); return; }
-            
+            if (string.IsNullOrWhiteSpace(LocationCity)) { Warn("City is required."); return; }
+
             // Get next location ID
             var allLocations = await _searchService.GetAllLocationsAsync();
             int nextId = allLocations.Count > 0 ? allLocations.Max(l => l.Id) + 1 : 1;
-            
-            var location = new Location(nextId, LocationName, LocationAddress);
+            var location = new Location(nextId, LocationName, LocationAddress, LocationCity);
             var excelPath = GetLocationsExcelPath();
             Directory.CreateDirectory(Path.GetDirectoryName(excelPath)!);
             AppendLocationsToExcel(excelPath, location);
@@ -41,6 +42,7 @@ public partial class LocationViewModel : ObservableObject
             
             LocationName = string.Empty;
             LocationAddress = string.Empty;
+            LocationCity = string.Empty;
         }
         catch (ArgumentException ex)
         {
@@ -83,7 +85,8 @@ public partial class LocationViewModel : ObservableObject
         ws.Cell(1, 1).Value = "ID";
         ws.Cell(1, 2).Value = "Name";
         ws.Cell(1, 3).Value = "Address";
-        ws.Cell(1, 4).Value = "CreatedAt";
+        ws.Cell(1, 4).Value = "City";
+        ws.Cell(1, 5).Value = "CreatedAt";
         ws.Row(1).Style.Font.Bold = true;
     }
 
@@ -117,7 +120,8 @@ public partial class LocationViewModel : ObservableObject
             wsExisting.Cell(targetRow, 1).Value = location.Id;
             wsExisting.Cell(targetRow, 2).Value = location.Name;
             wsExisting.Cell(targetRow, 3).Value = location.Address;
-            wsExisting.Cell(targetRow, 4).Value = DateTime.Now;
+            wsExisting.Cell(targetRow, 4).Value = location.City;
+            wsExisting.Cell(targetRow, 5).Value = DateTime.Now;
             wsExisting.Columns().AdjustToContents();
             wb.Save();
         }

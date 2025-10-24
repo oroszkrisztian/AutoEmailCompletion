@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using EmailCompleteApp.ViewModels;
+using EmailCompleteApp.Models;
 
 namespace EmailCompleteApp.Pages
 {
@@ -91,7 +92,25 @@ namespace EmailCompleteApp.Pages
         {
             if (sender is ComboBox combo && combo.IsEditable && combo.SelectedItem != null)
             {
-                combo.Text = combo.SelectedItem.ToString();
+                if(combo.SelectedItem is Location loc)
+                {
+                    if(combo.Name == "IncarcareComboBox")
+                    {
+                        _viewModel.UpdatePickupLocation(loc);
+                    }
+                    else if(combo.Name == "DescarcareComboBox")
+                    {
+                        _viewModel.UpdateDeliveryLocation(loc);
+                    }
+                } 
+                else if(combo.SelectedItem is Transportator transportator)
+                {
+                    if (combo.Name == "ClientComboBox")
+                    {
+                        _viewModel.GetTermenPlata(transportator);
+                    }
+                }
+                combo.Text = combo.SelectedItem.ToString();           
                 combo.IsDropDownOpen = false;
             }
         }

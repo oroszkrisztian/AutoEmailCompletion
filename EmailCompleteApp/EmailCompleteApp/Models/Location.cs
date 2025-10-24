@@ -5,9 +5,9 @@ namespace EmailCompleteApp.Models
     public class Location
     {
         private int _id;
-        private static int _nextId = 1;
         private string _name;
         private string _address;
+        private string _city;
 
         public int Id
         {
@@ -37,33 +37,34 @@ namespace EmailCompleteApp.Models
             }
         }
 
-        public Location(string name, string address)
+        public string City
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Location name is required.", nameof(name));
-            
-            if (string.IsNullOrWhiteSpace(address))
-                throw new ArgumentException("Location address is required.", nameof(address));
-            
-            _id = _nextId++;
-            _name = name;
-            _address = address;
+            get => _city;
+            set => _city = value;
         }
 
-        public Location(int id, string name, string address)
+        public string DisplayAddress => $"{Address} ({City})";
+
+        public Location(int id, string name, string address, string city)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Location name is required.", nameof(name));
             
             if (string.IsNullOrWhiteSpace(address))
                 throw new ArgumentException("Location address is required.", nameof(address));
-            
+
+            if (string.IsNullOrWhiteSpace(city))
+                throw new ArgumentException("Location city is required.", nameof(city));
+
             _id = id;
             _name = name;
             _address = address;
-            
-            if (id >= _nextId)
-                _nextId = id + 1;
+            _city = city;
+        }
+
+        public override string ToString()
+        {
+            return DisplayAddress;
         }
     }
 }

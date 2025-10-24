@@ -9,7 +9,6 @@ namespace EmailCompleteApp.Models
     public class Client
     {
         private int _id;
-        private static int _nextId = 1;
         private string _name;
         private string _address;
         private string _bank;
@@ -85,7 +84,7 @@ namespace EmailCompleteApp.Models
             set => _termenulDePlata = value ?? string.Empty;
         }
 
-        public Client(string name, string address, string bank, string iban,
+        public Client(int id, string name, string address, string bank, string iban,
                        string vatNumber = "", string cameraDeComert = "", string termenulDePlata = "")
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -99,19 +98,17 @@ namespace EmailCompleteApp.Models
             
             if (iban == null)
                 throw new ArgumentNullException(nameof(iban), "IBAN cannot be null.");
-            
-            _id = _nextId++;
-            _name = name;
-            _address = address;
-            _bank = bank;
-            _iban = iban;
-            _vatNumber = vatNumber ?? string.Empty;
-            _cameraDeComert = cameraDeComert ?? string.Empty;
-            _termenulDePlata = termenulDePlata ?? string.Empty;
+
+            Id = id;
+            Name = name;
+            Address = address;
+            Bank = bank;
+            IBAN = iban;
+            VATNumber = vatNumber ?? string.Empty;
+            CameraDeComert = cameraDeComert ?? string.Empty;
+            TermenulDePlata = termenulDePlata ?? string.Empty;
         }
 
-
-
-        
+        public override string ToString() => Name;
     }
 }

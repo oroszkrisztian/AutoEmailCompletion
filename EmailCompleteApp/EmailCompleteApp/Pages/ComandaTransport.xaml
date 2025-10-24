@@ -281,7 +281,7 @@
                         <TextBlock Text="Adresa descarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
                         <ComboBox x:Name="DescarcareComboBox"
                                   Text="{Binding LocatieDescarcare, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                  ItemsSource="{Binding DescarcareSuggestions}"
+                                  ItemsSource="{Binding DescarcareSuggestions}"                                  
                                   Style="{StaticResource AutoCompleteComboBoxStyle}"
                                   DropDownOpened="ComboBox_DropDownOpened"
                                   PreviewKeyDown="ComboBox_PreviewKeyDown"

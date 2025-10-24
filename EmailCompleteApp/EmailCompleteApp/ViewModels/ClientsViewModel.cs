@@ -49,9 +49,9 @@ public partial class ClientsViewModel : ObservableObject
                 var allClients = await _searchService.GetAllClientsAsync();
                 int nextId = allClients.Count > 0 ? allClients.Max(c => c.Id) + 1 : 1;
 
-                var client = new Client(ClientName, ClientAddress, ClientBank, ClientIban, ClientVatNumber, ClientCameraDeComert, ClientTermenPlata);
-                client.Id = nextId;
-                
+                var client = new Client(nextId, ClientName, ClientAddress, ClientBank, ClientIban, ClientVatNumber, ClientCameraDeComert, ClientTermenPlata);
+
+
                 AppendClientToExcel(excelPath, "Clients", client);
                 
                 // Add to in-memory list (no need to reload from Excel)
@@ -70,7 +70,7 @@ public partial class ClientsViewModel : ObservableObject
                 var allTransportators = await _searchService.GetAllTransportatorsAsync();
                 int nextId = allTransportators.Count > 0 ? allTransportators.Max(t => t.Id) + 1 : 1;
                 
-                var transportator = new Transportator(TransportatorName, TransportatorAdresa, TransportatorContBancar, TransportatorIban, TransportatorVatNumber, TransportatorCameraDeComert, TransportatorTermenPlata);
+                var transportator = new Transportator(nextId, TransportatorName, TransportatorAdresa, TransportatorContBancar, TransportatorIban, TransportatorVatNumber, TransportatorCameraDeComert, TransportatorTermenPlata);
                 transportator.Id = nextId;
                 
                 AppendTransportatorToExcel(excelPath, "Transportators", transportator);
