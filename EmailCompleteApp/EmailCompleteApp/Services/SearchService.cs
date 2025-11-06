@@ -1,27 +1,39 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using ClosedXML.Excel;
+using Microsoft.EntityFrameworkCore;
 using EmailCompleteApp.Models;
+using EmailCompleteApp.Services.Repositories;
 
 namespace EmailCompleteApp.Services
 {
+    /// <summary>
+    /// Search service with in-memory cache for fast autocomplete
+    /// - Loads all data from Supabase at startup (3 queries via repositories)
+    /// - Searches happen in memory (FAST - no database queries)
+    /// - Refreshes cache after inserts and email sent (3 queries via repositories)
+    /// </summary>
     public class SearchService
     {
         private static SearchService? _instance;
         private static readonly object _lock = new object();
 
+        // In-memory cache for fast searches
         private List<Client> _allClients = new();
         private List<Transportator> _allTransportators = new();
         private List<Location> _allLocations = new();
-        private List<HistoryTransport> _allHistoryTransports = new();
         private bool _dataLoaded = false;
 
+        // Events for UI progress updates
         public event Action<string>? ProgressChanged;
         public event Action<string>? DetailChanged;
+
+        // Repository instances
+        private readonly ClientRepository _clientRepo = ClientRepository.Instance;
+        private readonly TransportatorRepository _transportatorRepo = TransportatorRepository.Instance;
+        private readonly LocationRepository _locationRepo = LocationRepository.Instance;
 
         public static SearchService Instance
         {
@@ -31,40 +43,265 @@ namespace EmailCompleteApp.Services
                 {
                     lock (_lock)
                     {
-                        if (_instance == null)
-                        {
-                            _instance = new SearchService();
-                        }
+                        _instance ??= new SearchService();
                     }
                 }
                 return _instance;
             }
         }
 
-        private SearchService()
+        private SearchService() { }
+
+        #region Connection & Setup
+
+        /// <summary>
+        /// Test connection to Supabase
+        /// </summary>
+        public async Task<bool> TestConnectionAsync()
         {
-            
+            try
+            {
+               
+
+                using var context = DatabaseConfig.CreateDbContext();
+                var canConnect = await context.Database.CanConnectAsync();
+
+                if (canConnect)
+                {
+                    System.Diagnostics.Debug.WriteLine("✅ Supabase connection successful");
+                }
+
+                return canConnect;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Supabase connection error: {ex.Message}");
+                return false;
+            }
         }
 
+        /// <summary>
+        /// Ensure database tables exist
+        /// </summary>
+        public async Task EnsureDatabaseCreatedAsync()
+        {
+            try
+            {
+                using var context = DatabaseConfig.CreateDbContext();
+                await context.Database.EnsureCreatedAsync();
+                System.Diagnostics.Debug.WriteLine("✅ Supabase tables verified/created");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating tables: {ex.Message}");
+                throw;
+            }
+        }
 
-        public async Task<List<Location>> SearchLocationsAsync(string searchText)
+        #endregion
+
+        #region Data Loading from Supabase
+
+        /// <summary>
+        /// 🔥 Load all data from Supabase at app startup (3 queries via repositories)
+        /// </summary>
+        public async Task LoadAllDataAsync()
+        {
+            if (_dataLoaded) return;
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    ProgressChanged?.Invoke("Connecting to Supabase...");
+                    DetailChanged?.Invoke("Testing database connection");
+
+                    
+
+                    if (!await TestConnectionAsync())
+                    {
+                        ProgressChanged?.Invoke("Connection failed");
+                        DetailChanged?.Invoke("Could not connect to Supabase");
+
+                        Application.Current.Dispatcher.Invoke(() =>
+                            MessageBox.Show(
+                                "Could not connect to Supabase!\n\n" +
+                                "Check:\n" +
+                                "1. Internet connection\n" +
+                                "2. Password in DatabaseConfig.cs\n" +
+                                "3. Supabase project is active",
+                                "Connection Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error));
+                        return;
+                    }
+
+                    ProgressChanged?.Invoke("Setting up database...");
+                    await EnsureDatabaseCreatedAsync();
+
+                    // 🔥 Load all data from Supabase via repositories (3 queries)
+                    ProgressChanged?.Invoke("Loading clients...");
+                    DetailChanged?.Invoke("Fetching clients from Supabase");
+                    _allClients = await _clientRepo.LoadAllAsync();
+
+                    ProgressChanged?.Invoke("Loading transportators...");
+                    DetailChanged?.Invoke("Fetching transportators from Supabase");
+                    _allTransportators = await _transportatorRepo.LoadAllAsync();
+
+                    ProgressChanged?.Invoke("Loading locations...");
+                    DetailChanged?.Invoke("Fetching locations from Supabase");
+                    _allLocations = await _locationRepo.LoadAllAsync();
+
+                    _dataLoaded = true;
+
+                    System.Diagnostics.Debug.WriteLine(
+                        $"✅ Data loaded: {_allClients.Count} clients, " +
+                        $"{_allTransportators.Count} transportators, " +
+                        $"{_allLocations.Count} locations");
+
+                    ProgressChanged?.Invoke("Ready!");
+                    DetailChanged?.Invoke(
+                        $"Loaded {_allClients.Count} clients, " +
+                        $"{_allTransportators.Count} transportators, " +
+                        $"{_allLocations.Count} locations");
+                }
+                catch (Exception ex)
+                {
+                    ProgressChanged?.Invoke("Error occurred");
+                    DetailChanged?.Invoke($"Failed: {ex.Message}");
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                        MessageBox.Show(
+                            $"Error loading data from Supabase:\n\n{ex.Message}",
+                            "Database Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error));
+                }
+            });
+        }
+
+        /// <summary>
+        /// 🔥 Refresh all data from Supabase (3 queries via repositories)
+        /// </summary>
+        public async Task RefreshDataAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 Refreshing data from Supabase...");
+
+                ProgressChanged?.Invoke("Refreshing data...");
+
+                // 🔥 Reload via repositories (3 queries)
+                _allClients = await _clientRepo.LoadAllAsync();
+                _allTransportators = await _transportatorRepo.LoadAllAsync();
+                _allLocations = await _locationRepo.LoadAllAsync();
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"✅ Refreshed: {_allClients.Count} clients, " +
+                    $"{_allTransportators.Count} transportators, " +
+                    $"{_allLocations.Count} locations");
+
+                ProgressChanged?.Invoke("Refreshed!");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Refresh failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Search Methods (In-Memory - NO Database Queries!)
+
+        public async Task<List<Client>> SearchClientsAsync(string searchText)
         {
             await EnsureDataLoadedAsync();
-            
 
-            if (string.IsNullOrWhiteSpace(searchText)) 
-            {
-                return _allLocations.Take(10).ToList();
-            }
-                
-            return _allLocations
-                .Where(location => location.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                                  location.Address.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(searchText))
+                return _allClients.Take(10).ToList();
+
+            return _allClients
+                .Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                 .Take(10)
                 .ToList();
         }
 
-        
+        public async Task<List<Transportator>> SearchTransportatorsAsync(string searchText)
+        {
+            await EnsureDataLoadedAsync();
+
+            if (string.IsNullOrWhiteSpace(searchText))
+                return _allTransportators.Take(10).ToList();
+
+            return _allTransportators
+                .Where(t => t.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+
+        public async Task<List<Location>> SearchLocationsAsync(string searchText)
+        {
+            await EnsureDataLoadedAsync();
+
+            if (string.IsNullOrWhiteSpace(searchText))
+                return _allLocations.Take(10).ToList();
+
+            return _allLocations
+                .Where(l =>
+                    l.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    l.Address.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    l.City.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+
+        #endregion
+
+        #region Get All Methods
+
+        public async Task<List<Client>> GetAllClientsAsync()
+        {
+            await EnsureDataLoadedAsync();
+            return _allClients.ToList();
+        }
+
+        public async Task<List<Transportator>> GetAllTransportatorsAsync()
+        {
+            await EnsureDataLoadedAsync();
+            return _allTransportators.ToList();
+        }
+
+        public async Task<List<Location>> GetAllLocationsAsync()
+        {
+            await EnsureDataLoadedAsync();
+            return _allLocations.ToList();
+        }
+
+        #endregion
+
+        #region Get By Name
+
+        public async Task<Client?> GetClientByNameAsync(string name)
+        {
+            await EnsureDataLoadedAsync();
+            return _allClients.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public async Task<string> GetClientCameraDeComert(string clientName)
+        {
+            await EnsureDataLoadedAsync();
+            var client = _allClients.FirstOrDefault(c => c.Name.Equals(clientName, StringComparison.OrdinalIgnoreCase));
+            return client?.CameraDeComert ?? string.Empty;
+        }
+
+        public async Task<Transportator?> GetTransportatorByNameAsync(string name)
+        {
+            await EnsureDataLoadedAsync();
+            return _allTransportators.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        #endregion
 
         private async Task EnsureDataLoadedAsync()
         {
@@ -73,420 +310,5 @@ namespace EmailCompleteApp.Services
                 await LoadAllDataAsync();
             }
         }
-
-        public async Task LoadAllDataAsync()
-        {
-            if (_dataLoaded) return;
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    ProgressChanged?.Invoke("Initializing...");
-                    DetailChanged?.Invoke("Locating database file");
-
-                    string excelPath = GetDatabaseExcelPath();
-                    
-                    if (!File.Exists(excelPath))
-                    {
-                        ProgressChanged?.Invoke("Database not found");
-                        DetailChanged?.Invoke($"File not found: {excelPath}");
-                        
-                        Application.Current.Dispatcher.Invoke(() =>
-                            MessageBox.Show($"Database Excel file not found at: {excelPath}", 
-                                           "Warning", MessageBoxButton.OK, MessageBoxImage.Warning));
-                        return;
-                    }
-
-                    ProgressChanged?.Invoke("Opening database...");
-                    DetailChanged?.Invoke("Reading Excel workbook");
-
-                    using var workbook = new XLWorkbook(excelPath);
-                    
-                    // Load Clients
-                    ProgressChanged?.Invoke("Loading clients...");
-                    DetailChanged?.Invoke("Reading client data from Excel");
-                    LoadClientsFromSheet(workbook, "Clients");
-                    
-                    // Load Transportators
-                    ProgressChanged?.Invoke("Loading transportators...");
-                    DetailChanged?.Invoke("Reading transportator data from Excel");
-                    LoadTransportatorsFromSheet(workbook, "Transportators");
-                    
-                    // Load Locations
-                    ProgressChanged?.Invoke("Loading locations...");
-                    DetailChanged?.Invoke("Reading location data from Excel");
-                    LoadLocationsFromSheet(workbook, "Locations");
-
-                    //Load HistoryTransports
-                    //ProgressChanged?.Invoke("Loading history transports...");
-                    //DetailChanged?.Invoke("Reading history transport data from Excel");
-                    //LoadHistoryTransportsFromSheet(workbook, "HistoryTransports");
-
-                    ProgressChanged?.Invoke("Finalizing...");
-                    DetailChanged?.Invoke("Data loading complete");
-                    
-                    _dataLoaded = true;
-                    
-                    System.Diagnostics.Debug.WriteLine($"SearchService: Loaded {_allClients.Count} clients, {_allTransportators.Count} transportators, {_allLocations.Count} locations");
-                    
-                    ProgressChanged?.Invoke("Ready!");
-                    DetailChanged?.Invoke($"Loaded {_allClients.Count} clients, {_allTransportators.Count} transportators, {_allLocations.Count} locations");
-                }
-                catch (Exception ex)
-                {
-                    ProgressChanged?.Invoke("Error occurred");
-                    DetailChanged?.Invoke($"Failed to load data: {ex.Message}");
-                    
-                    Application.Current.Dispatcher.Invoke(() =>
-                        MessageBox.Show($"An error occurred while loading data from Excel file: {ex.Message}", 
-                                       "Error", MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            });
-        }
-        private void LoadHistoryTransportsFromSheet(XLWorkbook workbook, string sheetName)
-        {
-            try
-            {
-                var targetSheet = workbook.Worksheets.FirstOrDefault(s => 
-                    s.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
-                
-                if (targetSheet == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Sheet '{sheetName}' not found in Excel file");
-                    DetailChanged?.Invoke($"Warning: Sheet '{sheetName}' not found");
-                    return;
-                }
-                var lastRow = targetSheet.LastRowUsed()?.RowNumber() ?? 1;
-                
-                for (int row = 2; row <= lastRow; row++)
-                {
-                    try
-                    {
-                        var numarComanda = targetSheet.Cell(row, 1).GetValue<int>();
-                        var transportName = targetSheet.Cell(row, 2).GetString();
-                        var camClient = targetSheet.Cell(row, 3).GetString();
-                        var route = targetSheet.Cell(row, 4).GetString();
-                        var transportator = targetSheet.Cell(row, 5).GetString();
-                        var dataTransport = targetSheet.Cell(row, 6).GetDateTime();
-
-                        var historyTransport = new HistoryTransport(numarComanda, transportName.Trim(), camClient.Trim(), 
-                                                                    route.Trim(), transportator.Trim(), dataTransport);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error loading history transport row {row}: {ex.Message}");
-                        continue;
-                    }
-                }
-                
-                // Sort the list by date descending
-                _allHistoryTransports.Sort((h1, h2) => h2.DataTransport.CompareTo(h1.DataTransport));
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading data from sheet '{sheetName}': {ex.Message}");
-                DetailChanged?.Invoke($"Error loading {sheetName}: {ex.Message}");
-            }
-        }
-        private void LoadClientsFromSheet(XLWorkbook workbook, string sheetName)
-        {
-            try
-            {
-                var targetSheet = workbook.Worksheets.FirstOrDefault(s => 
-                    s.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
-                
-                if (targetSheet == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Sheet '{sheetName}' not found in Excel file");
-                    DetailChanged?.Invoke($"Warning: Sheet '{sheetName}' not found");
-                    return;
-                }
-
-                var lastRow = targetSheet.LastRowUsed()?.RowNumber() ?? 1;
-                
-                for (int row = 2; row <= lastRow; row++)
-                {
-                    try
-                    {
-                        var id = targetSheet.Cell(row, 1).GetValue<int>();
-                        int parsedId = int.TryParse(id.ToString(), out parsedId) ? parsedId : 0;
-                        var name = targetSheet.Cell(row, 2).GetString();
-                        var address = targetSheet.Cell(row, 3).GetString();
-                        var bank = targetSheet.Cell(row, 4).GetString();
-                        var iban = targetSheet.Cell(row, 5).GetString().ToUpper();
-                        var vat = targetSheet.Cell(row, 6).GetString();
-                        var camera = targetSheet.Cell(row, 7).GetString();
-                        var termen = targetSheet.Cell(row, 8).GetString();
-                        
-                        if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(address))
-                        {
-                            var client = new Client(parsedId, name.Trim(), address.Trim(), bank?.Trim() ?? "", iban?.Trim() ?? "",
-                                                  vat?.Trim() ?? "", camera?.Trim() ?? "", termen?.Trim() ?? "");
-                            _allClients.Add(client);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error loading client row {row}: {ex.Message}");
-                        continue;
-                    }
-                }
-                
-                // Sort the list 
-                _allClients.Sort((c1, c2) => string.Compare(c1.Name, c2.Name, StringComparison.OrdinalIgnoreCase));
-                
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading data from sheet '{sheetName}': {ex.Message}");
-                DetailChanged?.Invoke($"Error loading {sheetName}: {ex.Message}");
-            }
-        }
-
-        private void LoadTransportatorsFromSheet(XLWorkbook workbook, string sheetName)
-        {
-            try
-            {
-                var targetSheet = workbook.Worksheets.FirstOrDefault(s => 
-                    s.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
-                
-                if (targetSheet == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Sheet '{sheetName}' not found in Excel file");
-                    DetailChanged?.Invoke($"Warning: Sheet '{sheetName}' not found");
-                    return;
-                }
-
-                var lastRow = targetSheet.LastRowUsed()?.RowNumber() ?? 1;
-                
-                for (int row = 2; row <= lastRow; row++)
-                {
-                    try
-                    {
-                        var id = targetSheet.Cell(row, 1).GetValue<int>();
-                        int parsedId = int.TryParse(id.ToString(), out parsedId) ? parsedId : 0;
-                        var name = targetSheet.Cell(row, 2).GetString();
-                        var address = targetSheet.Cell(row, 3).GetString();
-                        var bank = targetSheet.Cell(row, 4).GetString();
-                        var iban = targetSheet.Cell(row, 5).GetString().ToUpper();
-                        var vat = targetSheet.Cell(row, 6).GetString();
-                        var camera = targetSheet.Cell(row, 7).GetString();
-                        var termen = targetSheet.Cell(row, 8).GetString();
-                        
-                        if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(address))
-                        {
-                            var transportator = new Transportator(parsedId, name.Trim(), address.Trim(), bank?.Trim() ?? "", iban?.Trim() ?? "",
-                                                                vat?.Trim() ?? "", camera?.Trim() ?? "", termen?.Trim() ?? "");
-                            _allTransportators.Add(transportator);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error loading transportator row {row}: {ex.Message}");
-                        continue;
-                    }
-                }
-                
-                // Sort the list for better user experience
-                _allTransportators.Sort((t1, t2) => string.Compare(t1.Name, t2.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading data from sheet '{sheetName}': {ex.Message}");
-                DetailChanged?.Invoke($"Error loading {sheetName}: {ex.Message}");
-            }
-        }
-
-        private void LoadLocationsFromSheet(XLWorkbook workbook, string sheetName)
-        {
-            try
-            {
-                var targetSheet = workbook.Worksheets.FirstOrDefault(s => 
-                    s.Name.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
-                
-                if (targetSheet == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Sheet '{sheetName}' not found in Excel file");
-                    DetailChanged?.Invoke($"Warning: Sheet '{sheetName}' not found");
-                    return;
-                }
-
-                var lastRow = targetSheet.LastRowUsed()?.RowNumber() ?? 1;
-                
-                for (int row = 2; row <= lastRow; row++)
-                {
-                    try
-                    {
-                        var id = targetSheet.Cell(row, 1).GetValue<int>();
-                        var name = targetSheet.Cell(row, 2).GetString();
-                        var address = targetSheet.Cell(row, 3).GetString();
-                        var city = targetSheet.Cell(row, 4).GetString();
-
-                        if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(address))
-                        {
-                            var location = new Location(id, name.Trim(), address.Trim(), city.Trim());
-                            _allLocations.Add(location);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error loading location row {row}: {ex.Message}");
-                        continue;
-                    }
-                }
-                
-                // Sort the list for better user experience
-                _allLocations.Sort((l1, l2) => string.Compare(l1.Name, l2.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading data from sheet '{sheetName}': {ex.Message}");
-                DetailChanged?.Invoke($"Error loading {sheetName}: {ex.Message}");
-            }
-        }
-
-        private static string GetDatabaseExcelPath()
-        {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-
-            string? current = baseDir;
-            for (int i = 0; i < 6 && current != null; i++)
-            {
-                string docDir = Path.Combine(current, "doc");
-                if (Directory.Exists(docDir))
-                {
-                    return Path.Combine(docDir, "database.xlsx");
-                }
-                current = Directory.GetParent(current)?.FullName;
-            }
-
-            var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return Path.Combine(docs, "AutoEmailCompletion", "database.xlsx");
-        }
-
-        /// <summary>
-        /// Refresh data from Excel file (useful if the Excel file has been updated)
-        /// </summary>
-        public async Task RefreshDataAsync()
-        {
-            _allClients.Clear();
-            _allTransportators.Clear();
-            _allLocations.Clear();
-            _dataLoaded = false;
-            
-            await LoadAllDataAsync();
-        }
-
-        /// <summary>
-        /// Get all client objects
-        /// </summary>
-        public async Task<List<Client>> GetAllClientsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allClients.ToList();
-        }
-
-        /// <summary>
-        /// Get all transportator objects
-        /// </summary>
-        public async Task<List<Transportator>> GetAllTransportatorsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allTransportators.ToList();
-        }
-
-        /// <summary>
-        /// Get all location objects
-        /// </summary>
-        public async Task<List<Location>> GetAllLocationsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allLocations.ToList();
-        }
-
-        /// <summary>
-        /// Get all history objects
-        /// </summary>
-        public async Task<List<HistoryTransport>> GetAllHistoryTransportsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allHistoryTransports.ToList();
-        }
-
-        /// <summary>
-        /// Get client by name
-        /// </summary>
-        public async Task<Client?> GetClientByNameAsync(string name)
-        {
-            await EnsureDataLoadedAsync();
-            return _allClients.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// getClientCmareDeComert by name
-        /// </summary>
-        internal async Task<string> GetClientCameraDeComert(string clientName)
-        {
-            await EnsureDataLoadedAsync();
-            var client = _allClients.FirstOrDefault(c => c.Name.Equals(clientName, StringComparison.OrdinalIgnoreCase));
-            return client?.CameraDeComert ?? string.Empty;
-        }
-        /// <summary>
-        /// Get transportator by name
-        /// </summary>
-        public async Task<Transportator?> GetTransportatorByNameAsync(string name)
-        {
-            await EnsureDataLoadedAsync();
-            return _allTransportators.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-       
-
-        /// <summary>
-        /// Add a client to the in-memory list (call this after successfully inserting to Excel)
-        /// </summary>
-        public async Task AddClientToMemoryAsync(Client client)
-        {
-            await EnsureDataLoadedAsync(); // Ensure data is loaded first
-            if (_allClients.Any(c => c.Id == client.Id)) return; // Avoid duplicates
-            _allClients.Add(client);
-            _allClients.Sort((c1, c2) => string.Compare(c1.Name, c2.Name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Add a transportator to the in-memory list (call this after successfully inserting to Excel)
-        /// </summary>
-        public async Task AddTransportatorToMemoryAsync(Transportator transportator)
-        {
-            await EnsureDataLoadedAsync(); // Ensure data is loaded first
-            if (_allTransportators.Any(t => t.Id == transportator.Id)) return; // Avoid duplicates
-            _allTransportators.Add(transportator);
-            _allTransportators.Sort((t1, t2) => string.Compare(t1.Name, t2.Name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Add a location to the in-memory list (call this after successfully inserting to Excel)
-        /// </summary>
-        public async Task AddLocationToMemoryAsync(Location location)
-        {
-            await EnsureDataLoadedAsync(); // Ensure data is loaded first
-            if (_allLocations.Any(l => l.Id == location.Id)) return; 
-            _allLocations.Add(location);
-            _allLocations.Sort((l1, l2) => string.Compare(l1.Name, l2.Name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Add a comanda  to the history (call this after successfully inserting to Excel)
-        /// </summary>
-        public  async  Task AddHistoryTransportToMemoryAsync(HistoryTransport historyTransport)
-        {
-            await EnsureDataLoadedAsync(); 
-            _allHistoryTransports.Add(historyTransport);
-            _allHistoryTransports.Sort((h1, h2) => h2.DataTransport.CompareTo(h1.DataTransport));
-        }
-
-        
     }
 }

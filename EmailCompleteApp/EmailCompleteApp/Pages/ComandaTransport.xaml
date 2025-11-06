@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -209,11 +209,11 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Data de incarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <DatePicker SelectedDate="{Binding DataIncarcare}" FontSize="18" Height="46"/>
+                        <DatePicker SelectedDate="{Binding DataIncarcare}" FontSize="18" Height="46" SelectedDateFormat="Short" Language="en-GB"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="8,0,0,0">
                         <TextBlock Text="Data de descarcare:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <DatePicker SelectedDate="{Binding DataDescarcare}" FontSize="18" Height="46"/>
+                        <DatePicker SelectedDate="{Binding DataDescarcare}" FontSize="18" Height="46" SelectedDateFormat="Short" Language="en-GB"/>
                     </StackPanel>
                 </Grid>
 
@@ -292,6 +292,25 @@
                     </StackPanel>
                 </Grid>
 
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock 
+                        Text="Mentiuni:" 
+                        FontSize="14" 
+                        FontWeight="SemiBold" 
+                        TextWrapping="Wrap" 
+                        VerticalAlignment="Top" 
+                        Foreground="{StaticResource TextColor}" 
+                        Margin="0,0,0,4"/>
+
+                    <TextBox 
+                        Text="{Binding CommentUser, UpdateSourceTrigger=PropertyChanged}" 
+                        Style="{StaticResource ModernTextBoxStyle}"
+                        TextWrapping="Wrap"
+                        AcceptsReturn="True"
+                        VerticalScrollBarVisibility="Disabled"
+                        TextChanged="CommentTextBox_TextChanged"
+                        MinHeight="80"/>
+                </StackPanel>
                 
             </StackPanel>
         </ScrollViewer>

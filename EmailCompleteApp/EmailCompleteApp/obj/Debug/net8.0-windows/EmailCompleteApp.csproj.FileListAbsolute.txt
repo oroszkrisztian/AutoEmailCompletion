@@ -244,3 +244,5 @@ E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\bin\Debug\net8.0-window
 E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\bin\Debug\net8.0-windows\runtimes\win-x86\native\e_sqlite3.dll
 E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\Pages\HistoryPage.g.cs
 E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\obj\Debug\net8.0-windows\Pages\HistoryPage.baml
+E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\bin\Debug\net8.0-windows\Npgsql.dll
+E:\AutoEmailCompletion\EmailCompleteApp\EmailCompleteApp\bin\Debug\net8.0-windows\Npgsql.EntityFrameworkCore.PostgreSQL.dll

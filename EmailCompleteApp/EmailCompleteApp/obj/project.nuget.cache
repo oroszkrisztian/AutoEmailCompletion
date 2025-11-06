@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "FT9kZYrLklI=",
+  "dgSpecHash": "liymRI1WQvw=",
   "success": true,
   "projectFilePath": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\EmailCompleteApp.csproj",
   "expectedPackageFiles": [
@@ -73,6 +73,8 @@
     "C:\\Users\\Krisztian\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.135\\microsoft.xaml.behaviors.wpf.1.1.135.nupkg.sha512",
     "C:\\Users\\Krisztian\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\Krisztian\\.nuget\\packages\\netstandard.library\\1.6.1\\netstandard.library.1.6.1.nupkg.sha512",
+    "C:\\Users\\Krisztian\\.nuget\\packages\\npgsql\\9.0.4\\npgsql.9.0.4.nupkg.sha512",
+    "C:\\Users\\Krisztian\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.4\\npgsql.entityframeworkcore.postgresql.9.0.4.nupkg.sha512",
     "C:\\Users\\Krisztian\\.nuget\\packages\\npoi\\2.7.4\\npoi.2.7.4.nupkg.sha512",
     "C:\\Users\\Krisztian\\.nuget\\packages\\npoi.hwpfcore\\2.3.0.1\\npoi.hwpfcore.2.3.0.1.nupkg.sha512",
     "C:\\Users\\Krisztian\\.nuget\\packages\\pdfsharp\\6.2.1\\pdfsharp.6.2.1.nupkg.sha512",

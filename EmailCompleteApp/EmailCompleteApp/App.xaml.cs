@@ -1,8 +1,8 @@
-﻿using System.Configuration;
-using System.Data;
+﻿using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Npgsql;
 using EmailCompleteApp.Services;
 using EmailCompleteApp.Windows;
 
@@ -22,30 +22,30 @@ namespace EmailCompleteApp
 
             try
             {
+                
+
                 var searchService = SearchService.Instance;
                 searchService.ProgressChanged += message => loadingWindow.UpdateProgress(message);
                 searchService.DetailChanged += detail => loadingWindow.UpdateDetail(detail);
 
                 await searchService.LoadAllDataAsync();
-                await Task.Delay(300); 
+                await Task.Delay(300);
 
                 var mainWindow = new MainWindow();
                 MainWindow = mainWindow;
                 mainWindow.Show();
 
                 loadingWindow.Close();
-
                 ShutdownMode = ShutdownMode.OnLastWindowClose;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 loadingWindow.Close();
-                MessageBox.Show($"Failed to initialize application: {ex.Message}",
-                               "Startup Error",
-                               MessageBoxButton.OK,
-                               MessageBoxImage.Error);
+                MessageBox.Show($"Failed to initialize application:\n\n{ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
             }
         }
+
+       
     }
 }

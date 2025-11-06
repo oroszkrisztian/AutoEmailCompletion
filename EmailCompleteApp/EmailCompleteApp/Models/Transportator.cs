@@ -1,109 +1,79 @@
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmailCompleteApp.Models
 {
+    [Table("transportators")]
     public class Transportator
     {
-        private int _id;
-        private string _name;
-        private string _address;
-        private string _bank;
-        private string _iban;
-        private string _vatNumber = string.Empty;
-        private string _cameraDeComert = string.Empty;
-        private string _termenulDePlata = string.Empty;
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("id")]
+        public int Id { get; set; }
 
-        public string Name
+        [Required]
+        [MaxLength(255)]
+        [Column("name")]
+        public string Name { get; set; }
+
+        [Required]
+        [MaxLength(500)]
+        [Column("address")]
+        public string Address { get; set; }
+
+        [MaxLength(255)]
+        [Column("bank")]
+        public string Bank { get; set; }
+
+        [MaxLength(100)]
+        [Column("iban")]
+        public string IBAN { get; set; }
+
+        [MaxLength(100)]
+        [Column("vat_number")]
+        public string VATNumber { get; set; }
+
+        [MaxLength(255)]
+        [Column("camera_de_comert")]
+        public string CameraDeComert { get; set; }
+
+        [MaxLength(100)]
+        [Column("termen_plata")]
+        public string TermenulDePlata { get; set; }
+
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
+
+        public override string ToString()
         {
-            get => _name;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Name cannot be empty or whitespace.", nameof(Name));
-                _name = value;
-            }
+            return Name;
         }
 
-        public int Id
+        public Transportator()
         {
-            get => _id;
-            set 
-            {
-               _id = value;
-            }
-        }
-
-        public string Address
-        {
-            get => _address;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Address cannot be empty or whitespace.", nameof(Address));
-                _address = value;
-            }
-        }
-
-        public string Bank
-        {
-            get => _bank;
-            set => _bank = value ?? string.Empty;
-        }
-
-        public string IBAN
-        {
-            get => _iban;
-            set
-            {
-                if (!string.IsNullOrEmpty(value) && !System.Text.RegularExpressions.Regex.IsMatch(value, @"^[A-Z0-9]+$"))
-                    throw new ArgumentException("IBAN can only contain uppercase letters and numbers.", nameof(IBAN));
-                
-                _iban = value ?? string.Empty;
-            }
-        }
-
-        public string VATNumber
-        {
-            get => _vatNumber;
-            set => _vatNumber = value ?? string.Empty;
-        }
-
-        public string CameraDeComert
-        {
-            get => _cameraDeComert;
-            set => _cameraDeComert = value ?? string.Empty;
-        }
-
-        public string TermenulDePlata
-        {
-            get => _termenulDePlata;
-            set => _termenulDePlata = value ?? string.Empty;
+            Name = string.Empty;
+            Address = string.Empty;
+            Bank = string.Empty;
+            IBAN = string.Empty;
+            VATNumber = string.Empty;
+            CameraDeComert = string.Empty;
+            TermenulDePlata = string.Empty;
+            CreatedAt = DateTime.UtcNow;
         }
 
         public Transportator(int id, string name, string address, string bank, string iban,
-                           string vatNumber = "", string cameraDeComert = "", string termenulDePlata = "")
+                            string vatNumber, string cameraDeComert, string termenulDePlata)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Transportator name is required.", nameof(name));
-            
-            if (string.IsNullOrWhiteSpace(address))
-                throw new ArgumentException("Transportator address is required.", nameof(address));
-            
-            if (bank == null)
-                throw new ArgumentNullException(nameof(bank), "Bank cannot be null.");
-            
-            if (iban == null)
-                throw new ArgumentNullException(nameof(iban), "IBAN cannot be null.");
             Id = id;
             Name = name;
             Address = address;
             Bank = bank;
             IBAN = iban;
-            VATNumber = vatNumber ?? string.Empty;
-            CameraDeComert = cameraDeComert ?? string.Empty;
-            TermenulDePlata = termenulDePlata ?? string.Empty;
+            VATNumber = vatNumber;
+            CameraDeComert = cameraDeComert;
+            TermenulDePlata = termenulDePlata;
+            CreatedAt = DateTime.UtcNow;
         }
-
-        public override string ToString() => Name;
     }
 }

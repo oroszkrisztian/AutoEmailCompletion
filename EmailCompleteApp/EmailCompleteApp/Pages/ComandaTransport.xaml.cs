@@ -1,9 +1,10 @@
+using EmailCompleteApp.Models;
+using EmailCompleteApp.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using EmailCompleteApp.ViewModels;
-using EmailCompleteApp.Models;
+using System.Windows.Media;
 
 namespace EmailCompleteApp.Pages
 {
@@ -22,8 +23,7 @@ namespace EmailCompleteApp.Pages
         {
             if (sender is ComboBox combo)
             {
-                combo.IsDropDownOpen = true;
-                
+                // Do NOT open dropdown on focus; only when user types
                 if (combo.Items.Count == 0 && string.IsNullOrWhiteSpace(combo.Text))
                 {
                     if (_viewModel != null)
@@ -59,8 +59,12 @@ namespace EmailCompleteApp.Pages
                     {
                         if (combo.Template.FindName("PART_EditableTextBox", combo) is TextBox textBox)
                         {
-                            textBox.GotFocus += (s, args) => combo.IsDropDownOpen = true;
-                            textBox.MouseDown += (s, args) => combo.IsDropDownOpen = true;
+                            // Open dropdown ONLY when user types (text not empty); close when cleared
+                            textBox.TextChanged += (s, args) =>
+                            {
+                                var hasText = !string.IsNullOrWhiteSpace(textBox.Text);
+                                combo.IsDropDownOpen = hasText;
+                            };
                         }
                     }
                     catch
@@ -90,27 +94,47 @@ namespace EmailCompleteApp.Pages
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox combo && combo.IsEditable && combo.SelectedItem != null)
+            if (sender is ComboBox combo && combo.IsEditable && combo.SelectedItem != null && _viewModel != null)
             {
                 if(combo.SelectedItem is Location loc)
                 {
                     if(combo.Name == "IncarcareComboBox")
                     {
+                        _viewModel.SetUpdatingFromSelection(true);
                         _viewModel.UpdatePickupLocation(loc);
+                        // Ensure editable text shows the selected value immediately
+                        combo.Text = loc.ToString();
+                        _viewModel.SetUpdatingFromSelection(false);
                     }
                     else if(combo.Name == "DescarcareComboBox")
                     {
+                        _viewModel.SetUpdatingFromSelection(true);
                         _viewModel.UpdateDeliveryLocation(loc);
+                        combo.Text = loc.ToString();
+                        _viewModel.SetUpdatingFromSelection(false);
                     }
                 } 
                 else if(combo.SelectedItem is Transportator transportator)
                 {
-                    if (combo.Name == "ClientComboBox")
+                    if (combo.Name == "TransportatorComboBox")
                     {
+                        _viewModel.SetUpdatingFromSelection(true);
+                        _viewModel.Transportator = transportator.ToString();
                         _viewModel.GetTermenPlata(transportator);
+                        combo.Text = _viewModel.Transportator;
+                        _viewModel.SetUpdatingFromSelection(false);
                     }
                 }
-                combo.Text = combo.SelectedItem.ToString();           
+                else if(combo.SelectedItem is Client client)
+                {
+                    if (combo.Name == "ClientComboBox")
+                    {
+                        _viewModel.SetUpdatingFromSelection(true);
+                        _viewModel.Client = client.ToString();
+                        combo.Text = _viewModel.Client;
+                        _viewModel.SetUpdatingFromSelection(false);
+                    }
+                }
                 combo.IsDropDownOpen = false;
             }
         }
@@ -138,6 +162,43 @@ namespace EmailCompleteApp.Pages
                     }
                 }, System.Windows.Threading.DispatcherPriority.Input);
             }
+        }
+
+        private void CommentTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            //autogrow height for textbox
+            //need to scroll main page to bottom
+
+            if (sender is TextBox textBox)
+            {
+                textBox.Height = Double.NaN;
+                textBox.UpdateLayout();
+                var desiredHeight = textBox.DesiredSize.Height;
+                textBox.Height = desiredHeight;
+                //find main scrollviewer
+                Dispatcher.BeginInvoke(() =>
+                {
+                    var scrollViewer = FindAncestor<ScrollViewer>(this);
+                    if (scrollViewer != null)
+                    {
+                        scrollViewer.ScrollToEnd();
+                    }
+                }, System.Windows.Threading.DispatcherPriority.Background);
+
+            }
+        }
+
+        private static T? FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T desired)
+                {
+                    return desired;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
         }
     }
 }
