@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EmailCompleteApp.Models;
 using EmailCompleteApp.Services;
+using EmailCompleteApp.Services.Repositories;
 
 namespace EmailCompleteApp.ViewModels;
 
@@ -16,6 +17,7 @@ public partial class ComandaTransportViewModel : ObservableObject
 {
     private readonly SearchService _searchService;
     private readonly DocumentCompletion _documentCompletion;
+    private readonly HistoryRepository _historyRepository;
 
     // Search debounce settings
     private const int SearchDebounceDelayMs = 300;
@@ -42,8 +44,8 @@ public partial class ComandaTransportViewModel : ObservableObject
     [ObservableProperty] private string _transportatorTarif = string.Empty;
     [ObservableProperty] private int _transportatorMonedaIndex = 0;
     [ObservableProperty] private int _transportatorTipIndex = 0;
-    [ObservableProperty] private DateTime? _dataIncarcare = DateTime.Today;
-    [ObservableProperty] private DateTime? _dataDescarcare = DateTime.Today.AddDays(1);
+    [ObservableProperty] private DateTime? _dataIncarcare = DateTime.UtcNow.Date;
+    [ObservableProperty] private DateTime? _dataDescarcare = DateTime.UtcNow.Date.AddDays(1);
     [ObservableProperty] private string _produs = string.Empty;
     [ObservableProperty] private string _cantitate = string.Empty;
     [ObservableProperty] private int _tipAdrIndex = 0;
@@ -66,11 +68,13 @@ public partial class ComandaTransportViewModel : ObservableObject
     [ObservableProperty] private string _locatieIncarcareAddress = string.Empty;
     [ObservableProperty] private string _locatieIncarcareName = string.Empty;
     [ObservableProperty] private string _locatieIncarcareCity = string.Empty;
+    [ObservableProperty] private string _locatieincarcareCode = string.Empty;
 
     // Delivery location components
     [ObservableProperty] private string _locatieDescarcareAddress = string.Empty;
     [ObservableProperty] private string _locatieDescarcareName = string.Empty;
     [ObservableProperty] private string _locatieDescarcareCity = string.Empty;
+    [ObservableProperty] private string _locatieDescarcareCode = string.Empty;
 
     #endregion
 
@@ -89,6 +93,7 @@ public partial class ComandaTransportViewModel : ObservableObject
     {
         _searchService = SearchService.Instance;
         _documentCompletion = DocumentCompletion.Instance;
+        _historyRepository = HistoryRepository.Instance;
         _ = InitializeSuggestionsAsync();
     }
 
@@ -346,6 +351,23 @@ public partial class ComandaTransportViewModel : ObservableObject
             var tipOptions = new[] { "TVA", "ALL IN" };
             var tipAdrOptions = new[] { "ADR", "NON-ADR" };
 
+            var responseHisotrySave = await _historyRepository.InsertHistory(new HistoryTransport
+            {
+                ClientName = Client,
+                Route = $"{LocatieIncarcareCity} - {LocatieDescarcareCity}",
+                DateLoaded = EnsureUtcDate(DataIncarcare),
+                DateUnloaded = EnsureUtcDate(DataDescarcare),
+                ClientTarif = Tarif,
+                TransportatorTarif = TransportatorTarif,
+                NumarComanda = int.TryParse(NumarComanda, out var numar) ? numar : 0
+            });
+
+            if (responseHisotrySave == null)
+            {
+                Debug.WriteLine("❌ Failed to save history record");
+                throw new Exception("Failed to save history record before sending email.");
+            }
+
             await _documentCompletion.GenerateAndSendDocumentAsync(
                 NumarComanda,
                 NumarClient,
@@ -369,10 +391,12 @@ public partial class ComandaTransportViewModel : ObservableObject
                 LocatieIncarcareAddress,
                 LocatieIncarcareName,
                 LocatieIncarcareCity,
+                LocatieincarcareCode,
                 // Delivery location components
                 LocatieDescarcareAddress,
                 LocatieDescarcareName,
                 LocatieDescarcareCity,
+                LocatieDescarcareCode,
                 TermenPlata,
                 CommentUser,
                 monedaOptions,
@@ -458,8 +482,8 @@ public partial class ComandaTransportViewModel : ObservableObject
         TransportatorTarif = string.Empty;
         TransportatorMonedaIndex = 0;
         TransportatorTipIndex = 0;
-        DataIncarcare = DateTime.Today;
-        DataDescarcare = DateTime.Today.AddDays(1);
+        DataIncarcare = DateTime.UtcNow.Date;
+        DataDescarcare = DateTime.UtcNow.Date.AddDays(1);
         Produs = string.Empty;
         Cantitate = string.Empty;
         TipAdrIndex = 0;
@@ -496,23 +520,42 @@ public partial class ComandaTransportViewModel : ObservableObject
         LocatieIncarcareName = location.Name ?? string.Empty;
         LocatieIncarcareCity = location.City ?? string.Empty;
         LocatieIncarcareAddress = location.Address ?? string.Empty;
+        LocatieincarcareCode = location.Code ?? string.Empty;
     }
 
     public void UpdateDeliveryLocation(Location location)
     {
         if (location == null) return;
-        // Show full address in the input after selecting from dropdown
         LocatieDescarcare = location.ToString();
 
         LocatieDescarcareName = location.Name ?? string.Empty;
         LocatieDescarcareCity = location.City ?? string.Empty;
         LocatieDescarcareAddress = location.Address ?? string.Empty;
+        LocatieDescarcareCode = location.Code ?? string.Empty;
     }
 
     public void GetTermenPlata(Transportator transportator)
     {
         if (transportator == null) return;
         TermenPlata = transportator.TermenulDePlata ?? string.Empty;
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private static DateTime EnsureUtcDate(DateTime? value)
+    {
+        if (!value.HasValue)
+            return DateTime.UtcNow.Date;
+
+        var v = value.Value;
+        if (v.Kind == DateTimeKind.Utc)
+            return v;
+
+        // Treat UI-picked date as a date-only in UTC.
+        // We only care about the date (00:00), so avoid time zone shifts.
+        return DateTime.SpecifyKind(v, DateTimeKind.Utc);
     }
 
     #endregion

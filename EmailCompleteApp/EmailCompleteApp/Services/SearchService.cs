@@ -61,7 +61,7 @@ namespace EmailCompleteApp.Services
         {
             try
             {
-               
+
 
                 using var context = DatabaseConfig.CreateDbContext();
                 var canConnect = await context.Database.CanConnectAsync();
@@ -116,7 +116,7 @@ namespace EmailCompleteApp.Services
                     ProgressChanged?.Invoke("Connecting to Supabase...");
                     DetailChanged?.Invoke("Testing database connection");
 
-                    
+
 
                     if (!await TestConnectionAsync())
                     {
@@ -212,7 +212,6 @@ namespace EmailCompleteApp.Services
 
         #endregion
 
-        #region Search Methods (In-Memory - NO Database Queries!)
 
         public async Task<List<Client>> SearchClientsAsync(string searchText)
         {
@@ -256,52 +255,7 @@ namespace EmailCompleteApp.Services
                 .ToList();
         }
 
-        #endregion
 
-        #region Get All Methods
-
-        public async Task<List<Client>> GetAllClientsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allClients.ToList();
-        }
-
-        public async Task<List<Transportator>> GetAllTransportatorsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allTransportators.ToList();
-        }
-
-        public async Task<List<Location>> GetAllLocationsAsync()
-        {
-            await EnsureDataLoadedAsync();
-            return _allLocations.ToList();
-        }
-
-        #endregion
-
-        #region Get By Name
-
-        public async Task<Client?> GetClientByNameAsync(string name)
-        {
-            await EnsureDataLoadedAsync();
-            return _allClients.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public async Task<string> GetClientCameraDeComert(string clientName)
-        {
-            await EnsureDataLoadedAsync();
-            var client = _allClients.FirstOrDefault(c => c.Name.Equals(clientName, StringComparison.OrdinalIgnoreCase));
-            return client?.CameraDeComert ?? string.Empty;
-        }
-
-        public async Task<Transportator?> GetTransportatorByNameAsync(string name)
-        {
-            await EnsureDataLoadedAsync();
-            return _allTransportators.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        #endregion
 
         private async Task EnsureDataLoadedAsync()
         {
@@ -310,5 +264,5 @@ namespace EmailCompleteApp.Services
                 await LoadAllDataAsync();
             }
         }
-    }
+    } 
 }

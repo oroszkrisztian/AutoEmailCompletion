@@ -51,7 +51,7 @@ namespace EmailCompleteApp
 
         private void ComandaTransportIstorict_Click(object sender, RoutedEventArgs e)
         {
-            //MainContentArea.Content = new ComandaTransport();
+            MainContentArea.Content = new ComandaTransport();
             MainContentArea.Content = new HistoryPage();
             _selected = SelectedButton.Istoric;
             UpdateButtonVisuals();

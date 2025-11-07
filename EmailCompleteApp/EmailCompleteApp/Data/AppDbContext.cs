@@ -14,6 +14,8 @@ namespace EmailCompleteApp.Data
         public DbSet<Transportator> Transportators { get; set; }
         public DbSet<Location> Locations { get; set; }
 
+        public DbSet<HistoryTransport> HistoryTransports { get; set; }
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -66,6 +68,23 @@ namespace EmailCompleteApp.Data
                 entity.Property(e => e.City).HasColumnName("city").HasMaxLength(100);
                 entity.HasIndex(e => e.Name).HasDatabaseName("idx_locations_name");
                 entity.HasIndex(e => e.City).HasDatabaseName("idx_locations_city");
+                entity.Property(e => e.Code).HasColumnName("city_code").HasMaxLength(100);
+            });
+
+            // Configure History entity
+            modelBuilder.Entity<HistoryTransport>(entity =>
+            {
+                entity.ToTable("history");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").UseIdentityColumn();
+                entity.Property(e => e.ClientName).HasColumnName("client").IsRequired().HasMaxLength(255);
+                entity.Property(e => e.Route).HasColumnName("route").IsRequired().HasMaxLength(255);
+                entity.Property(e => e.DateLoaded).HasColumnName("date_loaded").IsRequired();
+                entity.Property(e => e.DateUnloaded).HasColumnName("date_unloaded").IsRequired();
+                entity.Property(e => e.ClientTarif).HasColumnName("client_tarif").IsRequired().HasMaxLength(255);
+                entity.Property(e => e.TransportatorTarif).HasColumnName("transportator_tarif").IsRequired().HasMaxLength(255);
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.NumarComanda).HasColumnName("order_number").IsRequired();
             });
         }
     }

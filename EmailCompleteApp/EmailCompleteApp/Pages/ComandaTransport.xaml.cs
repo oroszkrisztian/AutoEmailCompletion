@@ -102,7 +102,6 @@ namespace EmailCompleteApp.Pages
                     {
                         _viewModel.SetUpdatingFromSelection(true);
                         _viewModel.UpdatePickupLocation(loc);
-                        // Ensure editable text shows the selected value immediately
                         combo.Text = loc.ToString();
                         _viewModel.SetUpdatingFromSelection(false);
                     }

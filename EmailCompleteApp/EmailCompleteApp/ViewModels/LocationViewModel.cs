@@ -16,6 +16,7 @@ public partial class LocationViewModel : ObservableObject
     [ObservableProperty] private string _locationName = string.Empty;
     [ObservableProperty] private string _locationAddress = string.Empty;
     [ObservableProperty] private string _locationCity = string.Empty;
+    [ObservableProperty] private string _locationCityCode = string.Empty;
 
     [RelayCommand]
     private async void Save()
@@ -42,7 +43,8 @@ public partial class LocationViewModel : ObservableObject
             {
                 Name = LocationName.Trim(),
                 Address = LocationAddress.Trim(),
-                City = LocationCity.Trim()
+                City = LocationCity.Trim(),
+                Code = LocationCityCode.Trim()
             };
 
             // 🔥 Insert via LocationRepository (1 query to Supabase)
@@ -65,6 +67,7 @@ public partial class LocationViewModel : ObservableObject
             LocationName = string.Empty;
             LocationAddress = string.Empty;
             LocationCity = string.Empty;
+            LocationCityCode = string.Empty;
         }
         catch (Exception ex)
         {

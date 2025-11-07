@@ -183,7 +183,7 @@
                         <Button x:Name="ComandaTransportIstoricButton"
                                  Content="Istoric"
                                  Margin="10"
-                                 Visibility="Hidden"
+                                 Visibility="Visible"
                                  Background="White"
                                  Foreground="#272537"
                                  Click="ComandaTransportIstorict_Click"

@@ -25,11 +25,16 @@ namespace EmailCompleteApp.Models
         [Column("city")]
         public string City { get; set; }
 
+        [MaxLength(100)]
+        [Column("city_code")]
+        public string? Code { get; set; }
+        
+
        
         //override ToString 
         public override string ToString()
         {
-            return $"{Name}, {Address}, {City}";
+            return $"{Name}, {Address}, {City}, {Code}";
         }
 
         public Location()
@@ -37,14 +42,9 @@ namespace EmailCompleteApp.Models
             Name = string.Empty;
             Address = string.Empty;
             City = string.Empty;
+            Code = string.Empty;
         }
 
-        public Location(int id, string name, string address, string city)
-        {
-            Id = id;
-            Name = name;
-            Address = address;
-            City = city;
-        }
+       
     }
 }
