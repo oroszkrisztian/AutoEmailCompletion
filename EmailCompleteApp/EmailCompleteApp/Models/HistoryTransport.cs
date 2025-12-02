@@ -54,6 +54,10 @@ namespace EmailCompleteApp.Models
         [Column("order_number")]
         public int NumarComanda { get; set; }
 
+        public string DisplayDateLoaded => DateLoaded.Date.ToString("dd/MM/yyyy");
+        public string DisplayDateUnloaded => DateUnloaded.Date.ToString("dd/MM/yyyy");
+        public string DisplayDateCreatedAt => CreatedAt.Date.ToString("dd/MM/yyyy");
+
         public HistoryTransport() 
         {
             ClientName = string.Empty;

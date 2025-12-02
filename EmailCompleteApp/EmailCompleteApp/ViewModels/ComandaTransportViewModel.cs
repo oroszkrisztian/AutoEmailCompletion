@@ -100,14 +100,20 @@ public partial class ComandaTransportViewModel : ObservableObject
     #endregion
 
     #region Initialization
+    private async Task<string> LoadNextNumarComandaAsync() => await _historyRepository.GetLastOrderNumber();
 
     private async Task InitializeSuggestionsAsync()
     {
         try
         {
-            await _searchService.LoadAllDataAsync();
-
+            var next = await LoadNextNumarComandaAsync();
+            if (Application.Current?.Dispatcher?.CheckAccess() == true)
+                NumarComanda = next;
+            else
+                Application.Current?.Dispatcher?.Invoke(() => NumarComanda = next);
+    
             await Task.WhenAll(
+                _searchService.LoadAllDataAsync(),
                 LoadInitialClientsAsync(),
                 LoadInitialTransportatorsAsync(),
                 LoadInitialLocationsAsync(IncarcareSuggestions),
@@ -125,7 +131,7 @@ public partial class ComandaTransportViewModel : ObservableObject
     #endregion
 
     #region Property Change Handlers
-
+    
     partial void OnClientChanged(string value)
     {
         if (_isUpdatingFromSelection) return;
@@ -350,6 +356,8 @@ public partial class ComandaTransportViewModel : ObservableObject
             var monedaOptions = new[] { "EUR", "EUR/MT", "RON" };
             var tipOptions = new[] { "TVA", "ALL IN" };
             var tipAdrOptions = new[] { "ADR", "NON-ADR" };
+            var clientTarifValue = Tarif + " " + monedaOptions.ElementAtOrDefault(MonedaIndex);
+            var transportatorTarifValue = TransportatorTarif + " " + monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex);
 
             var responseHisotrySave = await _historyRepository.InsertHistory(new HistoryTransport
             {
@@ -357,8 +365,8 @@ public partial class ComandaTransportViewModel : ObservableObject
                 Route = $"{LocatieIncarcareCity} - {LocatieDescarcareCity}",
                 DateLoaded = EnsureUtcDate(DataIncarcare),
                 DateUnloaded = EnsureUtcDate(DataDescarcare),
-                ClientTarif = Tarif,
-                TransportatorTarif = TransportatorTarif,
+                ClientTarif = clientTarifValue,
+                TransportatorTarif = transportatorTarifValue,
                 NumarComanda = int.TryParse(NumarComanda, out var numar) ? numar : 0
             });
 
@@ -406,14 +414,17 @@ public partial class ComandaTransportViewModel : ObservableObject
 
             Debug.WriteLine("📧 Email sent successfully");
 
-            // 🔥 Refresh data from Supabase (3 queries via repositories)
             Debug.WriteLine("🔄 Refreshing data from Supabase...");
             await _searchService.RefreshDataAsync();
 
-            // 🔄 Reload UI suggestions
             await ReloadAllSuggestionsAsync();
 
             ResetinputFields();
+            var next = await LoadNextNumarComandaAsync();
+            if (Application.Current?.Dispatcher?.CheckAccess() == true)
+                NumarComanda = next;
+            else
+                Application.Current?.Dispatcher?.Invoke(() => NumarComanda = next);
 
             Debug.WriteLine("✅ Email sent and data refreshed");
 

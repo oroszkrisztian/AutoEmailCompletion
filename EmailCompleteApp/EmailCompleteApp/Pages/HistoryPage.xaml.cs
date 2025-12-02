@@ -1,4 +1,6 @@
-﻿using EmailCompleteApp.ViewModels;
+﻿using ClosedXML;
+using EmailCompleteApp.Models;
+using EmailCompleteApp.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +23,23 @@ namespace EmailCompleteApp.Pages
     /// </summary>
     public partial class HistoryPage : UserControl
     {
+        private HistoryPageViewModel? _viewModel;
         public HistoryPage()
         {
             InitializeComponent();
             DataContext = new HistoryPageViewModel();
+            _viewModel = DataContext as HistoryPageViewModel;
+
+        }
+
+        private void HistoryListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (HistoryListBox.SelectedItem is HistoryTransport selectedItem)
+            {
+                _viewModel.OpenDocument(selectedItem.NumarComanda.ToString());
+                MessageBox.Show($"Clicked on history item: {selectedItem.NumarComanda}");
+            }
+            HistoryListBox.UnselectAll();
         }
     }
 }

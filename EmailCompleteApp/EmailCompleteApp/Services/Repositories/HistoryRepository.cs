@@ -29,7 +29,31 @@ namespace EmailCompleteApp.Services.Repositories
         }
 
         private HistoryRepository() { }
-
+        public async Task<string> GetLastOrderNumber()
+        {
+            try
+            {
+                using var context = DatabaseConfig.CreateDbContext();
+                var lastOrder = await context.HistoryTransports
+                    .OrderByDescending(h => h.NumarComanda)
+                    .FirstOrDefaultAsync();
+                if (lastOrder != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔢 Last order number retrieved: {lastOrder.NumarComanda}");
+                    return (lastOrder.NumarComanda + 1).ToString();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ℹ️ No previous orders found. Returning default order number '0'.");
+                    return "0";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error retrieving last order number: {ex.Message}");
+                throw;
+            }
+        }
         public async Task<HistoryTransport> InsertHistory(HistoryTransport history) 
         {
             try 
@@ -62,6 +86,23 @@ namespace EmailCompleteApp.Services.Repositories
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error loading history records: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<HistoryTransport>> LoadAllByOrderNumDescAsync()
+        { 
+            try
+            {
+                using var context = DatabaseConfig.CreateDbContext();
+                var hisotries = await context.HistoryTransports
+                    .OrderByDescending(h => h.NumarComanda)
+                    .ToListAsync();
+                return hisotries;
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error loading history records descending by order number: {ex.Message}");
                 throw;
             }
         }

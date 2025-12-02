@@ -5,7 +5,6 @@ using EmailCompleteApp.Pages;
 
 namespace EmailCompleteApp
 {
-
     public partial class MainWindow : Window
     {
         private enum SelectedButton { None, Client, Location, Comanda, Istoric }
@@ -16,20 +15,9 @@ namespace EmailCompleteApp
             InitializeComponent();
         }
 
-        private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
         private void ClientButton_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to Cleint page
+            // Switch to Client page
             MainContentArea.Content = new ClientPage();
             _selected = SelectedButton.Client;
             UpdateButtonVisuals();
@@ -51,14 +39,10 @@ namespace EmailCompleteApp
 
         private void ComandaTransportIstorict_Click(object sender, RoutedEventArgs e)
         {
-            MainContentArea.Content = new ComandaTransport();
             MainContentArea.Content = new HistoryPage();
             _selected = SelectedButton.Istoric;
             UpdateButtonVisuals();
         }
-
-
-
 
         // Mouse Enter Event Handlers
         private void ClientButton_MouseEnter(object sender, MouseEventArgs e)
@@ -88,7 +72,7 @@ namespace EmailCompleteApp
             }
         }
 
-      private void ComandaTransportIstorictButton_MouseEnter(object sender, MouseEventArgs e)
+        private void ComandaTransportIstorictButton_MouseEnter(object sender, MouseEventArgs e)
         {
             if (ComandaTransportIstoricButton.Background != new SolidColorBrush(Color.FromRgb(100, 150, 255)))
             {
@@ -97,11 +81,9 @@ namespace EmailCompleteApp
             }
         }
 
-
         // Mouse Leave Event Handlers
         private void ClientButton_MouseLeave(object sender, MouseEventArgs e)
         {
-           
             if (MainContentArea.Content is ClientPage)
             {
                 // Keep selected state - do nothing
@@ -117,7 +99,6 @@ namespace EmailCompleteApp
 
         private void LocationButton_MouseLeave(object sender, MouseEventArgs e)
         {
-
             // If the currently displayed content is the Location page, keep the selected state
             if (MainContentArea.Content is LocationPage)
             {
@@ -147,7 +128,7 @@ namespace EmailCompleteApp
 
         private void ComandaTransportIstoric_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (MainContentArea.Content is ComandaTransport)
+            if (MainContentArea.Content is HistoryPage)
             {
                 return;
             }
@@ -173,7 +154,6 @@ namespace EmailCompleteApp
             ComandaTransportIstoricButton.Background = Brushes.White;
             ComandaTransportIstoricButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
 
-
             // Apply selected visuals
             var selectedBrush = new SolidColorBrush(Color.FromRgb(100, 150, 255));
             switch (_selected)
@@ -195,36 +175,6 @@ namespace EmailCompleteApp
                     ComandaTransportIstoricButton.Foreground = Brushes.White;
                     break;
             }
-        }
-
-        
-
-        
-        // Minimize Button Event Handlers
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-
-        private void MinimizeButton_MouseEnter(object sender, MouseEventArgs e)
-        {
-            MinimizeButton.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100)); // Gray hover effect
-        }
-
-        private void MinimizeButton_MouseLeave(object sender, MouseEventArgs e)
-        {
-            MinimizeButton.Background = Brushes.Transparent;
-        }
-
-        // Close Button Mouse Event Handlers
-        private void CloseButton_MouseEnter(object sender, MouseEventArgs e)
-        {
-            CloseButton.Background = new SolidColorBrush(Color.FromRgb(255, 68, 68)); // #FF4444
-        }
-
-        private void CloseButton_MouseLeave(object sender, MouseEventArgs e)
-        {
-            CloseButton.Background = Brushes.Transparent;
         }
     }
 }

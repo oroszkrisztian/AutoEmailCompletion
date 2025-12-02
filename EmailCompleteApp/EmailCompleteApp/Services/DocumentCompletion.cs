@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows; // Needed for Application & MessageBox
+using System.Windows; 
 
 namespace EmailCompleteApp.Services
 {
@@ -93,7 +93,7 @@ namespace EmailCompleteApp.Services
                 Directory.CreateDirectory(generatedDir);
 
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
-                string outputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {timestamp}.docx");
+                string outputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {numarComanda}.docx");
 
                 var replacements = await BuildReplacementDictionary(
                     numarComanda,

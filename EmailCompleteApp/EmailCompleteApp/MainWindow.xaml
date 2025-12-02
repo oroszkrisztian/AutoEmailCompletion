@@ -5,223 +5,119 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EmailCompleteApp"
         mc:Ignorable="d"
-        WindowStyle="None"
-        Background="Transparent"
-        ResizeMode="CanResize"
-        AllowsTransparency="True"
+        Title="Email Completion App"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Height="800" Width="1200">
+        Height="720" Width="1280"
+        WindowState="Maximized">
 
-    <Border Background="#272537"
-            CornerRadius="20">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <Viewbox Stretch="UniformToFill">
+        <Grid Background="#272537" x:Name="MainGrid" Width="1280" Height="720">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Draggable Title Bar -->
-            <Border Grid.Row="0" 
-                    Background="Transparent"
-                    
-                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid>
-                    <TextBlock Text="Email Completion App"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               FontFamily="Segoe UI"
-                               Margin="20,0,0,0"
-                               Foreground="White"/>
+            <!-- Left Sidebar -->
+            <Border Grid.Column="0"
+                    Background="#1E1E2F">
+                <StackPanel>
+                    <Button x:Name="ClientButtonPage"
+                            Content="Client/Transportator"
+                            Margin="10"
+                            Background="White"
+                            Foreground="#272537"
+                            Click="ClientButton_Click"
+                            MouseEnter="ClientButton_MouseEnter"
+                            MouseLeave="ClientButton_MouseLeave">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        CornerRadius="10">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
 
-                    <!-- Window Control Buttons -->
-                    <StackPanel HorizontalAlignment="Right" 
-                                Orientation="Horizontal" 
-                                VerticalAlignment="Center"
-                                Margin="0,0,10,0">
-                        
-                        <!-- Minimize Button -->
-                        <Button
-                                x:Name="MinimizeButton"
-                                Width="30"
-                                Height="30"
-                                Margin="0,0,5,0"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="White"
-                                Click="MinimizeButton_Click"
-                                MouseEnter="MinimizeButton_MouseEnter"
-                                MouseLeave="MinimizeButton_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="15"
-                                            Width="30"
-                                            Height="30">
-                                        <TextBlock Text="−"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  FontSize="26"
-                                                  FontWeight="Bold"
-                                                  Foreground="{TemplateBinding Foreground}"
-                                                  Margin="0,-3,0,0"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                    <Button x:Name="LocationButtonPage"
+                            Content="Locatii"
+                            Margin="10"
+                            Background="White"
+                            Foreground="#272537"
+                            Click="LocationButton_Click"
+                            MouseEnter="LocationButton_MouseEnter"
+                            MouseLeave="LocationButton_MouseLeave">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        CornerRadius="10">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
 
-                        <!-- Close Button -->
-                        <Button
-                                x:Name="CloseButton"
-                                Width="30"
-                                Height="30"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="White"
-                                Click="CloseButton_Click"
-                                MouseEnter="CloseButton_MouseEnter"
-                                MouseLeave="CloseButton_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="15"
-                                            Width="30"
-                                            Height="30">
-                                        <TextBlock Text="✕"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  FontSize="16"
-                                                  FontWeight="Bold"
-                                                  Foreground="{TemplateBinding Foreground}"
-                                                  Margin="-1,-3,0,0"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                    <Button x:Name="ComandaTransportButton"
+                            Content="Comanda Transport"
+                            Margin="10"
+                            Background="White"
+                            Foreground="#272537"
+                            Click="ComandaTransport_Click"
+                            MouseEnter="ComandaTransportButton_MouseEnter"
+                            MouseLeave="ComandaTransport_MouseLeave">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        CornerRadius="10">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button x:Name="ComandaTransportIstoricButton"
+                            Content="Istoric"
+                            Margin="10"
+                            Visibility="Visible"
+                            Background="White"
+                            Foreground="#272537"
+                            Click="ComandaTransportIstorict_Click"
+                            MouseEnter="ComandaTransportIstorictButton_MouseEnter"
+                            MouseLeave="ComandaTransportIstoric_MouseLeave">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        CornerRadius="10">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}"/>             
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
             </Border>
 
-            <!-- Main Content -->
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="135*"/>
-                    <ColumnDefinition Width="631*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="0.95*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Left Sidebar -->
-                <Border Grid.Column="0" Grid.RowSpan="2"
-                        Background="#1E1E2F"
-                        CornerRadius="0,0,0,20">
-                    <StackPanel>
-
-
-                        <Button x:Name="ClientButtonPage"
-                                Content="Client/Transportator"
-                                Margin="10"
-                                Background="White"
-                                Foreground="#272537"
-                                Click="ClientButton_Click"
-                                MouseEnter="ClientButton_MouseEnter"
-                                MouseLeave="ClientButton_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" 
-                                                          VerticalAlignment="Center"
-                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <Button x:Name="LocationButtonPage"
-                                Content="Locatii"
-                                Margin="10"
-                                Background="White"
-                                Foreground="#272537"
-                                Click="LocationButton_Click"
-                                MouseEnter="LocationButton_MouseEnter"
-                                MouseLeave="LocationButton_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                    CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" 
-                                  VerticalAlignment="Center"
-                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <Button x:Name="ComandaTransportButton"
-                                Content="Comanda Transport"
-                                Margin="10"
-                                Background="White"
-                                Foreground="#272537"
-                                Click="ComandaTransport_Click"
-                                MouseEnter="ComandaTransportButton_MouseEnter"
-                                MouseLeave="ComandaTransport_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" 
-                                                        VerticalAlignment="Center"
-                                                        TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <Button x:Name="ComandaTransportIstoricButton"
-                                 Content="Istoric"
-                                 Margin="10"
-                                 Visibility="Visible"
-                                 Background="White"
-                                 Foreground="#272537"
-                                 Click="ComandaTransportIstorict_Click"
-                                 MouseEnter="ComandaTransportIstorictButton_MouseEnter"
-                                 MouseLeave="ComandaTransportIstoric_MouseLeave">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" 
-                                                          VerticalAlignment="Center"
-                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>             
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        
-
-                    </StackPanel>
-                </Border>
-
-                <!--Main Content Area-->
-                <Border Grid.Column="1" Grid.RowSpan="2"
-                        Background="White"
-                        CornerRadius="0,0,20,0">
-                    <ContentControl x:Name="MainContentArea">
-                        <Grid>
-                            <TextBlock Text="Chose email to complete from sidebar!"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       FontSize="24"
-                                       FontWeight="Bold"
-                                       Foreground="#272537"/>
-                        </Grid>
-                    </ContentControl>
-                </Border>
-            </Grid>
+            <!--Main Content Area-->
+            <Border Grid.Column="1"
+                    Background="White">
+                <ContentControl x:Name="MainContentArea">
+                    <Grid>
+                        <TextBlock Text="Chose email to complete from sidebar!"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="#272537"/>
+                    </Grid>
+                </ContentControl>
+            </Border>
         </Grid>
-    </Border>
+    </Viewbox>
 </Window>
