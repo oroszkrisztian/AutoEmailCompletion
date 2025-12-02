@@ -93,7 +93,7 @@ namespace EmailCompleteApp.Services
                 Directory.CreateDirectory(generatedDir);
 
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
-                string outputPath = Path.Combine(generatedDir, $"Comanda {numarComanda} {locatieIncarcareCity} - {locatieDescarcareCity}.docx");
+                string outputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {numarComanda}.docx");
 
                 var replacements = await BuildReplacementDictionary(
                     numarComanda,
@@ -134,9 +134,6 @@ namespace EmailCompleteApp.Services
                 if (success)
                 {
                     ShowSuccess($"DOCX generated.\n\nDOCX: {outputPath}", "Ready to Send");
-                    
-                    // Open Thunderbird with the generated document attached
-                    OpenThunderbirdWithAttachment(outputPath);
                 }
             }
             catch (Exception ex)
@@ -320,77 +317,6 @@ namespace EmailCompleteApp.Services
                 {
                     run.SetText(modifiedText, 0);
                 }
-            }
-        }
-
-        #endregion
-
-        #region Thunderbird Integration
-
-        /// <summary>
-        /// Opens Thunderbird email client with the specified document attached to a new email
-        /// </summary>
-        private static void OpenThunderbirdWithAttachment(string attachmentPath)
-        {
-            try
-            {
-                if (!File.Exists(attachmentPath))
-                {
-                    ShowWarning($"Document not found: {attachmentPath}", "File Not Found");
-                    return;
-                }
-
-                // Try common Thunderbird installation paths
-                string[] possibleThunderbirdPaths = new[]
-                {
-                    @"C:\Program Files\Mozilla Thunderbird\thunderbird.exe",
-                    @"C:\Program Files (x86)\Mozilla Thunderbird\thunderbird.exe",
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Mozilla Thunderbird\thunderbird.exe"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Mozilla Thunderbird\thunderbird.exe")
-                };
-
-                string? thunderbirdPath = null;
-                foreach (var path in possibleThunderbirdPaths)
-                {
-                    if (File.Exists(path))
-                    {
-                        thunderbirdPath = path;
-                        break;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(thunderbirdPath))
-                {
-                    ShowWarning(
-                        "Thunderbird not found in default installation locations.\n\n" +
-                        "Please open Thunderbird manually and attach the document from:\n" +
-                        $"{attachmentPath}",
-                        "Thunderbird Not Found");
-                    return;
-                }
-
-                // Escape the file path for command line
-                string escapedPath = attachmentPath.Replace("\\", "\\\\");
-
-                // Launch Thunderbird with compose window and attachment
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = thunderbirdPath,
-                    Arguments = $"-compose \"attachment='{attachmentPath}'\"",
-                    UseShellExecute = false
-                };
-
-                Process.Start(startInfo);
-                Debug.WriteLine($"✅ Opened Thunderbird with attachment: {attachmentPath}");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Error opening Thunderbird: {ex.Message}");
-                ShowWarning(
-                    $"Could not open Thunderbird automatically.\n\n" +
-                    $"Error: {ex.Message}\n\n" +
-                    $"Please open Thunderbird manually and attach:\n{attachmentPath}",
-                    "Thunderbird Error");
             }
         }
 

@@ -93,7 +93,7 @@ namespace EmailCompleteApp.Services
                 Directory.CreateDirectory(generatedDir);
 
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
-                string outputPath = Path.Combine(generatedDir, $"Comanda {numarComanda} {locatieIncarcareCity} - {locatieDescarcareCity}.docx");
+                string outputPath = Path.Combine(generatedDir, $"CAPAC+Comanda transport - {numarComanda}.docx");
 
                 var replacements = await BuildReplacementDictionary(
                     numarComanda,
