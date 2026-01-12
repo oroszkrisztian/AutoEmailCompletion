@@ -25,16 +25,24 @@ namespace EmailCompleteApp.Models
         [Column("city")]
         public string City { get; set; }
 
+        [MaxLength(10)]
+        [Column("country_code")]
+        public string? CountryCode { get; set; }
+
+        [MaxLength(20)]
+        [Column("postal_code")]
+        public string? PostalCode { get; set; }
+
         [MaxLength(100)]
-        [Column("city_code")]
-        public string? Code { get; set; }
+        [Column("county")]
+        public string? County { get; set; }
         
 
        
         //override ToString 
         public override string ToString()
         {
-            return $"{Name}, {Address}, {City}, {Code}";
+            return $"{Name}, {Address}, {City} {CountryCode} - {PostalCode}";
         }
 
         public Location()
@@ -42,7 +50,9 @@ namespace EmailCompleteApp.Models
             Name = string.Empty;
             Address = string.Empty;
             City = string.Empty;
-            Code = string.Empty;
+            CountryCode = string.Empty;
+            PostalCode = string.Empty;
+            County = string.Empty;
         }
 
        

@@ -32,8 +32,17 @@ public partial class ComandaTransportViewModel : ObservableObject
     // Flag to prevent search when updating from selection
     private bool _isUpdatingFromSelection = false;
 
-    #region Observable Properties
+    // Edit mode original history item
+    private HistoryTransport? _editingHistoryItem = null;
 
+    #region NumarComanda Helper
+    private HistoryTransport _lastOrder = new HistoryTransport();
+
+    #endregion
+
+
+    #region Observable Properties
+    [ObservableProperty] private string _lastOrderString = "";
     [ObservableProperty] private string _numarComanda = string.Empty;
     [ObservableProperty] private string _numarClient = string.Empty;
     [ObservableProperty] private string _client = string.Empty;
@@ -60,6 +69,24 @@ public partial class ComandaTransportViewModel : ObservableObject
     [ObservableProperty] private bool _isIncarcareDropDownOpen = false;
     [ObservableProperty] private bool _isDescarcareDropDownOpen = false;
     [ObservableProperty] private bool _isSendingEmail = false;
+    [ObservableProperty] private bool _isFormVisible = false;
+
+    // Edit mode properties
+    [ObservableProperty] private bool _isEditMode;
+    [ObservableProperty] private string _submitButtonText = "Send Email";
+
+    // Computed property for Send Email button visibility
+    public bool ShowSendEmailButton => IsFormVisible && !IsEditMode;
+    
+    partial void OnIsFormVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowSendEmailButton));
+    }
+    
+    partial void OnIsEditModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowSendEmailButton));
+    }
 
     // Additional fields required by DocumentCompletion
     [ObservableProperty] private string _commentUser = string.Empty;
@@ -68,13 +95,17 @@ public partial class ComandaTransportViewModel : ObservableObject
     [ObservableProperty] private string _locatieIncarcareAddress = string.Empty;
     [ObservableProperty] private string _locatieIncarcareName = string.Empty;
     [ObservableProperty] private string _locatieIncarcareCity = string.Empty;
-    [ObservableProperty] private string _locatieincarcareCode = string.Empty;
+    [ObservableProperty] private string _locatieIncarcareCountryCode = string.Empty;
+    [ObservableProperty] private string _locatieIncarcarePostalCode = string.Empty;
+    [ObservableProperty] private string _locatieIncarcareCounty = string.Empty;
 
     // Delivery location components
     [ObservableProperty] private string _locatieDescarcareAddress = string.Empty;
     [ObservableProperty] private string _locatieDescarcareName = string.Empty;
     [ObservableProperty] private string _locatieDescarcareCity = string.Empty;
-    [ObservableProperty] private string _locatieDescarcareCode = string.Empty;
+    [ObservableProperty] private string _locatieDescarcareCountryCode = string.Empty;
+    [ObservableProperty] private string _locatieDescarcarePostalCode = string.Empty;
+    [ObservableProperty] private string _locatieDescarcareCounty = string.Empty;
 
     #endregion
 
@@ -94,25 +125,110 @@ public partial class ComandaTransportViewModel : ObservableObject
         _searchService = SearchService.Instance;
         _documentCompletion = DocumentCompletion.Instance;
         _historyRepository = HistoryRepository.Instance;
+        IsFormVisible = false;
+        IsEditMode = false;
+        SubmitButtonText = "Send Email";
         _ = InitializeSuggestionsAsync();
+    }
+
+    // Constructor for edit mode
+    public ComandaTransportViewModel(HistoryTransport historyItem)
+    {
+        _searchService = SearchService.Instance;
+        _documentCompletion = DocumentCompletion.Instance;
+        _historyRepository = HistoryRepository.Instance;
+
+        _editingHistoryItem = historyItem;
+        IsEditMode = true;
+        IsFormVisible = true; // Show form immediately in edit mode
+        SubmitButtonText = "Update";
+
+        _ = InitializeSuggestionsAsync();
+        _ = LoadHistoryDataForEdit(historyItem);
     }
 
     #endregion
 
     #region Initialization
-    private async Task<string> LoadNextNumarComandaAsync() => await _historyRepository.GetLastOrderNumber();
+
+    private async Task LoadHistoryDataForEdit(HistoryTransport historyItem)
+    {
+        await Task.Delay(100); // Small delay to ensure UI is ready
+
+        // Load all data from history item
+        NumarComanda = historyItem.NumarComanda ?? string.Empty;
+        NumarClient = historyItem.NumarClient ?? string.Empty;
+        Client = historyItem.Client ?? string.Empty;
+        Tarif = historyItem.Tarif?.ToString() ?? string.Empty;
+        MonedaIndex = historyItem.MonedaIndex ?? 0;
+        TipIndex = historyItem.TipIndex ?? 0;
+
+        Transportator = historyItem.Transportator ?? string.Empty;
+        TransportatorTarif = historyItem.TransportatorTarif?.ToString() ?? string.Empty;
+        TransportatorMonedaIndex = historyItem.TransportatorMonedaIndex ?? 0;
+        TransportatorTipIndex = historyItem.TransportatorTipIndex ?? 0;
+
+        DataIncarcare = historyItem.DataIncarcare ?? DateTime.UtcNow.Date;
+        DataDescarcare = historyItem.DataDescarcare ?? DateTime.UtcNow.Date.AddDays(1);
+
+        Produs = historyItem.Produs ?? string.Empty;
+        Cantitate = historyItem.Cantitate?.ToString() ?? string.Empty;
+        TipAdrIndex = historyItem.TipAdrIndex ?? 0;
+        Clasa = historyItem.Clasa ?? string.Empty;
+        Un = historyItem.Un ?? string.Empty;
+        NumarInmatriculare = historyItem.NumarInmatriculare ?? string.Empty;
+
+        // Pickup location
+        LocatieIncarcareAddress = historyItem.LocatieIncarcareAddress ?? string.Empty;
+        LocatieIncarcareName = historyItem.LocatieIncarcareName ?? string.Empty;
+        LocatieIncarcareCity = historyItem.LocatieIncarcareCity ?? string.Empty;
+        LocatieIncarcareCountryCode = historyItem.LocatieIncarcareCountryCode ?? string.Empty;
+        LocatieIncarcarePostalCode = historyItem.LocatieIncarcarePostalCode ?? string.Empty;
+        LocatieIncarcareCounty = historyItem.LocatieIncarcareCounty ?? string.Empty;
+
+        // Build display string for pickup location
+        var pickupParts = new[] {
+            LocatieIncarcareName,
+            LocatieIncarcareAddress,
+            LocatieIncarcareCity,
+            LocatieIncarcareCounty,
+            LocatieIncarcarePostalCode,
+            LocatieIncarcareCountryCode
+        }.Where(p => !string.IsNullOrWhiteSpace(p));
+        LocatieIncarcare = string.Join(", ", pickupParts);
+
+        // Delivery location
+        LocatieDescarcareAddress = historyItem.LocatieDescarcareAddress ?? string.Empty;
+        LocatieDescarcareName = historyItem.LocatieDescarcareName ?? string.Empty;
+        LocatieDescarcareCity = historyItem.LocatieDescarcareCity ?? string.Empty;
+        LocatieDescarcareCountryCode = historyItem.LocatieDescarcareCountryCode ?? string.Empty;
+        LocatieDescarcarePostalCode = historyItem.LocatieDescarcarePostalCode ?? string.Empty;
+        LocatieDescarcareCounty = historyItem.LocatieDescarcareCounty ?? string.Empty;
+
+        // Build display string for delivery location
+        var deliveryParts = new[] {
+            LocatieDescarcareName,
+            LocatieDescarcareAddress,
+            LocatieDescarcareCity,
+            LocatieDescarcareCounty,
+            LocatieDescarcarePostalCode,
+            LocatieDescarcareCountryCode
+        }.Where(p => !string.IsNullOrWhiteSpace(p));
+        LocatieDescarcare = string.Join(", ", deliveryParts);
+
+        TermenPlata = historyItem.TermenPlata?.ToString() ?? string.Empty;
+        CommentUser = historyItem.CommentUser ?? string.Empty;
+
+        Debug.WriteLine($"✅ Loaded history data for editing: Order #{NumarComanda}");
+    }
 
     private async Task InitializeSuggestionsAsync()
     {
         try
         {
-            var next = await LoadNextNumarComandaAsync();
-            if (Application.Current?.Dispatcher?.CheckAccess() == true)
-                NumarComanda = next;
-            else
-                Application.Current?.Dispatcher?.Invoke(() => NumarComanda = next);
-    
+
             await Task.WhenAll(
+                InitLastOrder(),
                 _searchService.LoadAllDataAsync(),
                 LoadInitialClientsAsync(),
                 LoadInitialTransportatorsAsync(),
@@ -130,8 +246,117 @@ public partial class ComandaTransportViewModel : ObservableObject
 
     #endregion
 
+    #region Last Order Helper
+
+    private async Task InitLastOrder()
+    {
+        // Skip in edit mode
+        if (IsEditMode) return;
+
+        _lastOrder = await _historyRepository.GetLastOrder();
+        LastOrderString = _lastOrder.HistorySummary();
+
+        // Parse NumarComanda as int and increment
+        int nextOrderNum = 1;
+        if (int.TryParse(_lastOrder.NumarComanda, out var lastNum))
+        {
+            nextOrderNum = lastNum + 1;
+        }
+
+        if (Application.Current?.Dispatcher?.CheckAccess() == true)
+            NumarComanda = nextOrderNum.ToString();
+        else
+            Application.Current?.Dispatcher?.Invoke(() => NumarComanda = nextOrderNum.ToString());
+    }
+
+    [RelayCommand(CanExecute = nameof(CanReloadLastOrder))]
+    private async Task ReloadLastOrder()
+    {
+        await InitLastOrder();
+    }
+
+    private bool CanReloadLastOrder()
+    {
+        return !IsSendingEmail && !IsEditMode;
+    }
+
+    #endregion
+
+    #region Form Visibility Toggle
+
+    [RelayCommand]
+    private async Task NewOrder()
+    {
+        // Clean up Email folder before starting new order
+        CleanupEmailFolder();
+
+        await InitLastOrder();
+        ToggleVisibility();
+    }
+
+    private void ToggleVisibility()
+    {
+        IsFormVisible = !IsFormVisible;
+    }
+
+    /// <summary>
+    /// Cleans up all .doc and .docx files in the Email folder when starting a new order
+    /// </summary>
+    private void CleanupEmailFolder()
+    {
+        try
+        {
+            string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
+            string projectDir = FindProjectDirectory(projectRoot);
+            string docDir = System.IO.Path.Combine(projectDir, "doc");
+            string emailDir = System.IO.Path.Combine(docDir, "Email");
+
+            if (!System.IO.Directory.Exists(emailDir))
+            {
+                Debug.WriteLine($"📁 Email folder doesn't exist yet: {emailDir}");
+                return;
+            }
+
+            // Get all .doc and .docx files in the Email folder
+            var docFiles = System.IO.Directory.GetFiles(emailDir, "*.doc", System.IO.SearchOption.TopDirectoryOnly);
+            var docxFiles = System.IO.Directory.GetFiles(emailDir, "*.docx", System.IO.SearchOption.TopDirectoryOnly);
+            var allFiles = docFiles.Concat(docxFiles).ToArray();
+
+            if (allFiles.Length == 0)
+            {
+                Debug.WriteLine($"✅ Email folder is already clean");
+                return;
+            }
+
+            Debug.WriteLine($"🧹 Cleaning up {allFiles.Length} old file(s) from Email folder...");
+
+            int deletedCount = 0;
+            foreach (var file in allFiles)
+            {
+                try
+                {
+                    System.IO.File.Delete(file);
+                    deletedCount++;
+                    Debug.WriteLine($"  🗑️ Deleted: {System.IO.Path.GetFileName(file)}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"  ⚠️ Could not delete {System.IO.Path.GetFileName(file)}: {ex.Message}");
+                }
+            }
+
+            Debug.WriteLine($"✅ Cleaned up {deletedCount} file(s) from Email folder");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"⚠️ Error during Email folder cleanup: {ex.Message}");
+        }
+    }
+
+    #endregion
+
     #region Property Change Handlers
-    
+
     partial void OnClientChanged(string value)
     {
         if (_isUpdatingFromSelection) return;
@@ -187,6 +412,7 @@ public partial class ComandaTransportViewModel : ObservableObject
     partial void OnNumarComandaChanged(string value)
     {
         SendEmailCommand.NotifyCanExecuteChanged();
+        UpdateOrderCommand.NotifyCanExecuteChanged();
     }
 
     #endregion
@@ -294,7 +520,7 @@ public partial class ComandaTransportViewModel : ObservableObject
         try
         {
             var results = await _searchService.SearchClientsAsync("");
-            UpdateCollection(ClientSuggestions, results.Take(InitialSuggestions).ToList());
+            UpdateCollection(ClientSuggestions, results.ToList());
         }
         catch (Exception ex)
         {
@@ -307,7 +533,7 @@ public partial class ComandaTransportViewModel : ObservableObject
         try
         {
             var results = await _searchService.SearchTransportatorsAsync("");
-            UpdateCollection(TransportatorSuggestions, results.Take(InitialSuggestions).ToList());
+            UpdateCollection(TransportatorSuggestions, results.ToList());
         }
         catch (Exception ex)
         {
@@ -320,7 +546,7 @@ public partial class ComandaTransportViewModel : ObservableObject
         try
         {
             var results = await _searchService.SearchLocationsAsync("");
-            UpdateCollection(targetCollection, results.Take(InitialSuggestions).ToList());
+            UpdateCollection(targetCollection, results.ToList());
         }
         catch (Exception ex)
         {
@@ -337,6 +563,114 @@ public partial class ComandaTransportViewModel : ObservableObject
         collection.Clear();
         foreach (var item in items)
             collection.Add(item);
+    }
+
+    #endregion
+
+    #region Cancel Command (Edit Mode)
+
+    [RelayCommand]
+    private void CancelEdit()
+    {
+        // Navigate back to history page
+        var mainWindow = Application.Current.MainWindow as MainWindow;
+        mainWindow?.NavigateToHistory();
+    }
+
+    #endregion
+
+    #region Update Command (Edit Mode)
+
+    [RelayCommand(CanExecute = nameof(CanUpdateOrder))]
+    private async Task UpdateOrder()
+    {
+        try
+        {
+            IsSendingEmail = true;
+
+            Debug.WriteLine($"📝 Updating order #{NumarComanda}...");
+
+            // Parse tarif values as decimals
+            decimal? tarifValue = decimal.TryParse(Tarif, out var t) ? t : (decimal?)null;
+            decimal? transportatorTarifDecimal = decimal.TryParse(TransportatorTarif, out var tt) ? tt : (decimal?)null;
+            decimal? cantitateValue = decimal.TryParse(Cantitate, out var c) ? c : (decimal?)null;
+            int? termenPlataValue = int.TryParse(TermenPlata, out var tp) ? tp : (int?)null;
+
+            // Update the existing history record
+            if (_editingHistoryItem != null)
+            {
+                _editingHistoryItem.NumarComanda = NumarComanda;
+                _editingHistoryItem.NumarClient = NumarClient;
+                _editingHistoryItem.Client = Client;
+                _editingHistoryItem.Tarif = tarifValue;
+                _editingHistoryItem.MonedaIndex = MonedaIndex;
+                _editingHistoryItem.TipIndex = TipIndex;
+                _editingHistoryItem.Transportator = Transportator;
+                _editingHistoryItem.TransportatorTarif = transportatorTarifDecimal;
+                _editingHistoryItem.TransportatorMonedaIndex = TransportatorMonedaIndex;
+                _editingHistoryItem.TransportatorTipIndex = TransportatorTipIndex;
+                _editingHistoryItem.DataIncarcare = EnsureUtcDate(DataIncarcare);
+                _editingHistoryItem.DataDescarcare = EnsureUtcDate(DataDescarcare);
+                _editingHistoryItem.Produs = Produs;
+                _editingHistoryItem.Cantitate = cantitateValue;
+                _editingHistoryItem.TipAdrIndex = TipAdrIndex;
+                _editingHistoryItem.Clasa = Clasa;
+                _editingHistoryItem.Un = Un;
+                _editingHistoryItem.NumarInmatriculare = NumarInmatriculare;
+                _editingHistoryItem.LocatieIncarcareAddress = LocatieIncarcareAddress;
+                _editingHistoryItem.LocatieIncarcareName = LocatieIncarcareName;
+                _editingHistoryItem.LocatieIncarcareCity = LocatieIncarcareCity;
+                _editingHistoryItem.LocatieIncarcareCountryCode = LocatieIncarcareCountryCode;
+                _editingHistoryItem.LocatieIncarcarePostalCode = LocatieIncarcarePostalCode;
+                _editingHistoryItem.LocatieIncarcareCounty = LocatieIncarcareCounty;
+                _editingHistoryItem.LocatieDescarcareAddress = LocatieDescarcareAddress;
+                _editingHistoryItem.LocatieDescarcareName = LocatieDescarcareName;
+                _editingHistoryItem.LocatieDescarcareCity = LocatieDescarcareCity;
+                _editingHistoryItem.LocatieDescarcareCountryCode = LocatieDescarcareCountryCode;
+                _editingHistoryItem.LocatieDescarcarePostalCode = LocatieDescarcarePostalCode;
+                _editingHistoryItem.LocatieDescarcareCounty = LocatieDescarcareCounty;
+                _editingHistoryItem.TermenPlata = termenPlataValue;
+                _editingHistoryItem.CommentUser = CommentUser;
+
+                // Update in database
+                var updateResponse = await _historyRepository.UpdateHistory(_editingHistoryItem);
+
+                if (updateResponse == null)
+                {
+                    throw new Exception("Failed to update history record");
+                }
+
+                Debug.WriteLine($"✅ Order #{NumarComanda} updated successfully");
+
+                MessageBox.Show(
+                    $"✅ Order #{NumarComanda} updated successfully!",
+                    "Success",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                // Navigate back to history page
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                mainWindow?.NavigateToHistory();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"❌ Update error: {ex.Message}");
+            MessageBox.Show(
+                $"❌ Error updating order:\n\n{ex.Message}",
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsSendingEmail = false;
+        }
+    }
+
+    private bool CanUpdateOrder()
+    {
+        return !string.IsNullOrWhiteSpace(NumarComanda) && !IsSendingEmail && IsEditMode;
     }
 
     #endregion
@@ -359,24 +693,74 @@ public partial class ComandaTransportViewModel : ObservableObject
             var clientTarifValue = Tarif + " " + monedaOptions.ElementAtOrDefault(MonedaIndex);
             var transportatorTarifValue = TransportatorTarif + " " + monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex);
 
-            var responseHisotrySave = await _historyRepository.InsertHistory(new HistoryTransport
+            //recheck from api last number again
+            await ReloadLastOrder();
+
+            // Parse tarif values as decimals
+            decimal? tarifValue = decimal.TryParse(Tarif, out var t) ? t : (decimal?)null;
+            decimal? transportatorTarifDecimal = decimal.TryParse(TransportatorTarif, out var tt) ? tt : (decimal?)null;
+            decimal? cantitateValue = decimal.TryParse(Cantitate, out var c) ? c : (decimal?)null;
+            int? termenPlataValue = int.TryParse(TermenPlata, out var tp) ? tp : (int?)null;
+
+            var responseHistorySave = await _historyRepository.InsertHistory(new HistoryTransport
             {
-                ClientName = Client,
-                Route = $"{LocatieIncarcareCity} - {LocatieDescarcareCity}",
-                DateLoaded = EnsureUtcDate(DataIncarcare),
-                DateUnloaded = EnsureUtcDate(DataDescarcare),
-                ClientTarif = clientTarifValue,
-                TransportatorTarif = transportatorTarifValue,
-                NumarComanda = int.TryParse(NumarComanda, out var numar) ? numar : 0
+                // Comanda / Client
+                NumarComanda = NumarComanda,
+                NumarClient = NumarClient,
+                Client = Client,
+
+                // Tarif client
+                Tarif = tarifValue,
+                MonedaIndex = MonedaIndex,
+                TipIndex = TipIndex,
+
+                // Transportator
+                Transportator = Transportator,
+                TransportatorTarif = transportatorTarifDecimal,
+                TransportatorMonedaIndex = TransportatorMonedaIndex,
+                TransportatorTipIndex = TransportatorTipIndex,
+
+                // Date
+                DataIncarcare = EnsureUtcDate(DataIncarcare),
+                DataDescarcare = EnsureUtcDate(DataDescarcare),
+
+                // Marfa
+                Produs = Produs,
+                Cantitate = cantitateValue,
+                TipAdrIndex = TipAdrIndex,
+                Clasa = Clasa,
+                Un = Un,
+                NumarInmatriculare = NumarInmatriculare,
+
+                // Locatie incarcare
+                LocatieIncarcareAddress = LocatieIncarcareAddress,
+                LocatieIncarcareName = LocatieIncarcareName,
+                LocatieIncarcareCity = LocatieIncarcareCity,
+                LocatieIncarcareCountryCode = LocatieIncarcareCountryCode,
+                LocatieIncarcarePostalCode = LocatieIncarcarePostalCode,
+                LocatieIncarcareCounty = LocatieIncarcareCounty,
+
+                // Locatie descarcare
+                LocatieDescarcareAddress = LocatieDescarcareAddress,
+                LocatieDescarcareName = LocatieDescarcareName,
+                LocatieDescarcareCity = LocatieDescarcareCity,
+                LocatieDescarcareCountryCode = LocatieDescarcareCountryCode,
+                LocatieDescarcarePostalCode = LocatieDescarcarePostalCode,
+                LocatieDescarcareCounty = LocatieDescarcareCounty,
+
+                // Alte informatii
+                TermenPlata = termenPlataValue,
+                CommentUser = CommentUser
             });
 
-            if (responseHisotrySave == null)
+            if (responseHistorySave == null)
             {
                 Debug.WriteLine("❌ Failed to save history record");
                 throw new Exception("Failed to save history record before sending email.");
             }
 
-            await _documentCompletion.GenerateAndSendDocumentAsync(
+            // Generate comanda.docx (saved to disk permanently - NOT attached to email)
+            var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
                 NumarComanda,
                 NumarClient,
                 Client,
@@ -399,18 +783,94 @@ public partial class ComandaTransportViewModel : ObservableObject
                 LocatieIncarcareAddress,
                 LocatieIncarcareName,
                 LocatieIncarcareCity,
-                LocatieincarcareCode,
+                LocatieIncarcareCountryCode,
+                LocatieIncarcarePostalCode,
+                LocatieIncarcareCounty,
                 // Delivery location components
                 LocatieDescarcareAddress,
                 LocatieDescarcareName,
                 LocatieDescarcareCity,
-                LocatieDescarcareCode,
+                LocatieDescarcareCountryCode,
+                LocatieDescarcarePostalCode,
+                LocatieDescarcareCounty,
                 TermenPlata,
                 CommentUser,
                 monedaOptions,
                 tipOptions,
                 tipAdrOptions
             );
+
+            if (comandaPath == null)
+            {
+                Debug.WriteLine("❌ Failed to generate comanda.docx");
+                throw new Exception("Failed to generate comanda.docx");
+            }
+
+            Debug.WriteLine($"✅ Saved comanda.docx to: {comandaPath}");
+
+            // Build replacements for page2.doc
+            var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "DataAzi", DateTime.Today.ToString("dd.MM.yyyy") },
+                { "NumarComanda", NumarComanda?.Trim() ?? string.Empty },
+                { "NumarClient", NumarClient?.Trim() ?? string.Empty },
+                { "ClientNume", Client?.Trim() ?? string.Empty },
+                { "ClientTarif", Tarif?.Trim() ?? string.Empty },
+                { "ClientMoneda", monedaOptions.ElementAtOrDefault(MonedaIndex) ?? string.Empty },
+                { "ClientTip", tipOptions.ElementAtOrDefault(TipIndex) ?? string.Empty },
+                { "TransportatorNume", Transportator?.Trim() ?? string.Empty },
+                { "TransportatorTarif", TransportatorTarif?.Trim() ?? string.Empty },
+                { "TransportatorMoneda", monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex) ?? string.Empty },
+                { "TransportatorTip", tipOptions.ElementAtOrDefault(TransportatorTipIndex) ?? string.Empty },
+                { "DataIncarcare", DataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "DataDescarcare", DataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "Produs", Produs?.Trim() ?? string.Empty },
+                { "CantitateComanda", Cantitate?.Trim() ?? string.Empty },
+                { "TipADR", tipAdrOptions.ElementAtOrDefault(TipAdrIndex) ?? string.Empty },
+                { "Clasa", Clasa?.Trim() ?? string.Empty },
+                { "UserUnInput", Un?.Trim() ?? string.Empty },
+                { "NumarInmatriculare", NumarInmatriculare?.Trim().ToUpper() ?? string.Empty },
+                { "LocatieIncarcareAddress", LocatieIncarcareAddress?.Trim() ?? string.Empty },
+                { "LocatieIncarcareName", LocatieIncarcareName?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCity", LocatieIncarcareCity?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCountryCode", LocatieIncarcareCountryCode?.Trim() ?? string.Empty },
+                { "LocatieIncarcarePostalCode", LocatieIncarcarePostalCode?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCounty", LocatieIncarcareCounty?.Trim() ?? string.Empty },
+                { "LocatieDescarcareAddress", LocatieDescarcareAddress?.Trim() ?? string.Empty },
+                { "LocatieDescarcareName", LocatieDescarcareName?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCity", LocatieDescarcareCity?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCountryCode", LocatieDescarcareCountryCode?.Trim() ?? string.Empty },
+                { "LocatieDescarcarePostalCode", LocatieDescarcarePostalCode?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCounty", LocatieDescarcareCounty?.Trim() ?? string.Empty },
+                { "TermenPlata", TermenPlata?.Trim() ?? string.Empty },
+                { "Comments", CommentUser?.Trim() ?? string.Empty }
+            };
+
+            // Find page2.docx template path
+            string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
+            string projectDir = FindProjectDirectory(projectRoot);
+            string docDir = System.IO.Path.Combine(projectDir, "doc");
+            string page2TemplatePath = System.IO.Path.Combine(docDir, "page2.docx");
+
+            if (System.IO.File.Exists(page2TemplatePath))
+            {
+                // Generate page2.doc as temp file
+                var page2Path = await _documentCompletion.GenerateAndSendPage2DocAsync(page2TemplatePath, replacements, NumarComanda);
+                if (page2Path != null)
+                {
+                    // Open Thunderbird with ONLY page2.doc attached, then cleanup
+                    _documentCompletion.OpenThunderbirdAndCleanup(new[] { page2Path }, new[] { page2Path });
+                }
+                else
+                {
+                    Debug.WriteLine("❌ Failed to generate page2.doc");
+                }
+            }
+            else
+            {
+                Debug.WriteLine($"⚠️ page2.docx template not found at: {page2TemplatePath}");
+            }
+
 
             Debug.WriteLine("📧 Email sent successfully");
 
@@ -420,11 +880,9 @@ public partial class ComandaTransportViewModel : ObservableObject
             await ReloadAllSuggestionsAsync();
 
             ResetinputFields();
-            var next = await LoadNextNumarComandaAsync();
-            if (Application.Current?.Dispatcher?.CheckAccess() == true)
-                NumarComanda = next;
-            else
-                Application.Current?.Dispatcher?.Invoke(() => NumarComanda = next);
+            ToggleVisibility();
+            await InitLastOrder();
+
 
             Debug.WriteLine("✅ Email sent and data refreshed");
 
@@ -453,7 +911,25 @@ public partial class ComandaTransportViewModel : ObservableObject
 
     private bool CanSendEmail()
     {
-        return !string.IsNullOrWhiteSpace(NumarComanda) && !IsSendingEmail;
+        return !string.IsNullOrWhiteSpace(NumarComanda) && !IsSendingEmail && !IsEditMode;
+    }
+
+    private static string FindProjectDirectory(string startPath)
+    {
+        const int MaxParentDirectoryLevels = 6;
+        const string DocumentFolderName = "doc";
+
+        string? current = startPath;
+        for (int i = 0; i < MaxParentDirectoryLevels && current != null; i++)
+        {
+            string candidate = System.IO.Path.Combine(current, DocumentFolderName);
+            if (System.IO.Directory.Exists(candidate))
+            {
+                return current;
+            }
+            current = System.IO.Directory.GetParent(current)?.FullName;
+        }
+        return startPath;
     }
 
     #endregion
@@ -531,7 +1007,9 @@ public partial class ComandaTransportViewModel : ObservableObject
         LocatieIncarcareName = location.Name ?? string.Empty;
         LocatieIncarcareCity = location.City ?? string.Empty;
         LocatieIncarcareAddress = location.Address ?? string.Empty;
-        LocatieincarcareCode = location.Code ?? string.Empty;
+        LocatieIncarcareCountryCode = location.CountryCode ?? string.Empty;
+        LocatieIncarcarePostalCode = location.PostalCode ?? string.Empty;
+        LocatieIncarcareCounty = location.County ?? string.Empty;
     }
 
     public void UpdateDeliveryLocation(Location location)
@@ -542,7 +1020,9 @@ public partial class ComandaTransportViewModel : ObservableObject
         LocatieDescarcareName = location.Name ?? string.Empty;
         LocatieDescarcareCity = location.City ?? string.Empty;
         LocatieDescarcareAddress = location.Address ?? string.Empty;
-        LocatieDescarcareCode = location.Code ?? string.Empty;
+        LocatieDescarcareCountryCode = location.CountryCode ?? string.Empty;
+        LocatieDescarcarePostalCode = location.PostalCode ?? string.Empty;
+        LocatieDescarcareCounty = location.County ?? string.Empty;
     }
 
     public void GetTermenPlata(Transportator transportator)
@@ -568,6 +1048,6 @@ public partial class ComandaTransportViewModel : ObservableObject
         // We only care about the date (00:00), so avoid time zone shifts.
         return DateTime.SpecifyKind(v, DateTimeKind.Utc);
     }
+}
 
     #endregion
-}

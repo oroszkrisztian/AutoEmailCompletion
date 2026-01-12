@@ -19,6 +19,14 @@ namespace EmailCompleteApp.Pages
             _viewModel = DataContext as ComandaTransportViewModel;
         }
 
+        // Constructor for edit mode
+        public ComandaTransport(HistoryTransport historyItem)
+        {
+            InitializeComponent();
+            DataContext = new ComandaTransportViewModel(historyItem);
+            _viewModel = DataContext as ComandaTransportViewModel;
+        }
+
         private void ComboBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (sender is ComboBox combo)

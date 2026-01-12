@@ -6,120 +6,267 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <!-- colors + styles (unchanged) -->
+        <!-- Colors -->
         <SolidColorBrush x:Key="BackgroundColor" Color="#F8F9FA"/>
         <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="PrimaryColor" Color="#007BFF"/>
         <SolidColorBrush x:Key="TextColor" Color="#212529"/>
-        <SolidColorBrush x:Key="SendEmailHover" Color="#20C997"/>
-        <SolidColorBrush x:Key="BorderColor" Color="Black"/>
-        <SolidColorBrush x:Key="BorderFocus" Color="#007BFF"/>
-        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="VerticalContentAlignment" Value="Top"/>
-            <Setter Property="CaretBrush" Value="{StaticResource TextColor}"/>
-            <Setter Property="SelectionBrush" Value="{StaticResource PrimaryColor}"/>
-        </Style>
-        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
         
         <!-- Converter for visibility -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        
+        <!-- DataGrid Row Style - Better spacing and hover effect -->
+        <Style x:Key="DataGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="MinHeight" Value="48"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8F4FF"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="False"/>
+                        <Condition Property="AlternationIndex" Value="1"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="#FAFBFC"/>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Cell Style - Better padding and spacing -->
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Column Header Style -->
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Foreground" Value="#495057"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="BorderBrush" Value="#DEE2E6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
     </UserControl.Resources>
 
-    <Grid Background="{StaticResource BackgroundColor}" Grid.IsSharedSizeScope="True">
+    <Grid Background="{StaticResource BackgroundColor}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Istoric"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Foreground="{StaticResource TextColor}"
-                   HorizontalAlignment="Center"
-                   Margin="0,10"/>
-
         <!-- Header -->
-        <Grid Grid.Row="1"
-              Background="#FFEFEFEF"
-              Height="Auto"
-              TextBlock.TextAlignment="Center">
+        <Grid Grid.Row="0" Margin="20,20,20,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition SharedSizeGroup="c0" MinWidth="80" MaxWidth="100"/>
-                <ColumnDefinition SharedSizeGroup="c1" MinWidth="150" MaxWidth="200"/>
-                <ColumnDefinition SharedSizeGroup="c2" MinWidth="100" MaxWidth="150"/>
-                <ColumnDefinition SharedSizeGroup="c3" MinWidth="100" MaxWidth="150"/>
-                <ColumnDefinition SharedSizeGroup="c4" MinWidth="100" MaxWidth="150"/>
-                <ColumnDefinition SharedSizeGroup="c5" MinWidth="100" MaxWidth="150"/>
-                <ColumnDefinition SharedSizeGroup="c6" MinWidth="100" MaxWidth="150"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="Nr. Comanda" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
-            <TextBlock Grid.Column="1" Text="Ruta" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
-            <TextBlock Grid.Column="2" Text="Incarcare" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
-            <TextBlock Grid.Column="3" Text="Desarcare" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
-            <TextBlock Grid.Column="4" Text="Tarif client" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
-            <TextBlock Grid.Column="5" Text="Tarif transportator" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
-            <TextBlock Grid.Column="6" Text="Data" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center"/>
+
+            <!-- Page Title -->
+            <TextBlock Grid.Column="0"
+                       Text="Istoric Comenzi"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="0,0,20,0"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource TextColor}"/>
+
+            <!-- Order Number Search Box -->
+            <Border Grid.Column="1" 
+                    Background="White"
+                    BorderBrush="#DEE2E6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="8,4"
+                    MinWidth="180"
+                    VerticalAlignment="Center"
+                    Margin="0,0,10,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Text="Nr.:" 
+                              FontSize="12" 
+                              Foreground="#6C757D"
+                              VerticalAlignment="Center"
+                              Margin="0,0,6,0"
+                              Grid.Column="0"/>
+                    
+                    <TextBox Grid.Column="1"
+                            Text="{Binding OrderNumberSearchText, UpdateSourceTrigger=PropertyChanged}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="13"
+                            VerticalContentAlignment="Center"
+                            Height="24">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="nr. comandă" 
+                                                                  Foreground="#AAAAAA"
+                                                                  FontSize="13"
+                                                                  Margin="2,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </Grid>
+            </Border>
+
+            <!-- Client Name Search Box -->
+            <Border Grid.Column="2" 
+                    Background="White"
+                    BorderBrush="#DEE2E6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="8,4"
+                    MinWidth="220"
+                    VerticalAlignment="Center"
+                    Margin="0,0,20,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Text="Client:" 
+                              FontSize="12" 
+                              Foreground="#6C757D"
+                              VerticalAlignment="Center"
+                              Margin="0,0,6,0"
+                              Grid.Column="0"/>
+                    
+                    <TextBox Grid.Column="1"
+                            Text="{Binding ClientNameSearchText, UpdateSourceTrigger=PropertyChanged}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="13"
+                            VerticalContentAlignment="Center"
+                            Height="24">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="nume client" 
+                                                                  Foreground="#AAAAAA"
+                                                                  FontSize="13"
+                                                                  Margin="2,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </Grid>
+            </Border>
         </Grid>
 
-        <Grid Grid.Row="2">
-            <ListBox
-                 x:Name="HistoryListBox"
-                 SelectionChanged="HistoryListBox_SelectionChanged"
-                 ItemsSource="{Binding HistoryData}"
-                 VirtualizingStackPanel.IsVirtualizing="True"
-                 VirtualizingStackPanel.VirtualizationMode="Recycling"
-                 BorderThickness="0"
-                 Background="Transparent">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Height="Auto">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition SharedSizeGroup="c0" MinWidth="80" MaxWidth="100"/>
-                                <ColumnDefinition SharedSizeGroup="c1" MinWidth="150" MaxWidth="200"/>
-                                <ColumnDefinition SharedSizeGroup="c2" MinWidth="100" MaxWidth="150"/>
-                                <ColumnDefinition SharedSizeGroup="c3" MinWidth="100" MaxWidth="150"/>
-                                <ColumnDefinition SharedSizeGroup="c4" MinWidth="100" MaxWidth="150"/>
-                                <ColumnDefinition SharedSizeGroup="c5" MinWidth="100" MaxWidth="150"/>
-                                <ColumnDefinition SharedSizeGroup="c6" MinWidth="100" MaxWidth="150"/>
-                            </Grid.ColumnDefinitions>
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="20,20,20,20">
+            <Border Background="{StaticResource SurfaceColor}"
+                    CornerRadius="8"
+                    Padding="20">
+                <DataGrid x:Name="HistoryDataGrid"
+                          ItemsSource="{Binding HistoryData}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          GridLinesVisibility="None"
+                          HeadersVisibility="Column"
+                          Background="White"
+                          BorderThickness="0"
+                          HorizontalScrollBarVisibility="Auto"
+                          AlternationCount="2"
+                          MouseDoubleClick="HistoryDataGrid_MouseDoubleClick"
+                          RowStyle="{StaticResource DataGridRowStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open Document" Click="OpenDocument_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📄" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Edit" Click="EditOrder_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="✏️" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nr. Comandă" Binding="{Binding NumarComanda}" Width="Auto" MinWidth="100"/>
+                        <DataGridTextColumn Header="Client" Binding="{Binding ClientName}" Width="*" MinWidth="150"/>
+                        <DataGridTextColumn Header="Rută" Binding="{Binding Route}" Width="*" MinWidth="180"/>
+                        <DataGridTextColumn Header="Data Încărcare" Binding="{Binding DisplayDateLoaded}" Width="Auto" MinWidth="110"/>
+                        <DataGridTextColumn Header="Data Descărcare" Binding="{Binding DisplayDateUnloaded}" Width="Auto" MinWidth="120"/>
+                        <DataGridTextColumn Header="Tarif Client" Binding="{Binding ClientTarif}" Width="Auto" MinWidth="100"/>
+                        <DataGridTextColumn Header="Tarif Transportator" Binding="{Binding TransportatorTarifDisplay}" Width="Auto" MinWidth="140"/>
+                        <DataGridTextColumn Header="Data Creare" Binding="{Binding DisplayDateCreatedAt}" Width="Auto" MinWidth="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
 
-                            <!-- Match headers (HisotryTransport model propertiEs) -->
-                            <TextBlock Grid.Column="0" Text="{Binding NumarComanda}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Route}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="2" Text="{Binding DisplayDateLoaded}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="3" Text="{Binding DisplayDateUnloaded}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="4" Text="{Binding ClientTarif}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="5" Text="{Binding TransportatorTarif}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="6" Text="{Binding DisplayDateCreatedAt}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
-            <!-- Loading -->
+            <!-- Loading Overlay -->
             <Border Background="#80000000"
                     Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                    <TextBlock Text="Se incarca..." Foreground="White" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Se încarcă..." Foreground="White" Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Border>
         </Grid>

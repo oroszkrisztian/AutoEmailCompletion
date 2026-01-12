@@ -218,11 +218,10 @@ namespace EmailCompleteApp.Services
             await EnsureDataLoadedAsync();
 
             if (string.IsNullOrWhiteSpace(searchText))
-                return _allClients.Take(10).ToList();
+                return _allClients.ToList();
 
             return _allClients
                 .Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .Take(10)
                 .ToList();
         }
 
@@ -231,11 +230,10 @@ namespace EmailCompleteApp.Services
             await EnsureDataLoadedAsync();
 
             if (string.IsNullOrWhiteSpace(searchText))
-                return _allTransportators.Take(10).ToList();
+                return _allTransportators.ToList();
 
             return _allTransportators
                 .Where(t => t.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .Take(10)
                 .ToList();
         }
 
@@ -244,17 +242,27 @@ namespace EmailCompleteApp.Services
             await EnsureDataLoadedAsync();
 
             if (string.IsNullOrWhiteSpace(searchText))
-                return _allLocations.Take(10).ToList();
+                return _allLocations.ToList();
 
             return _allLocations
                 .Where(l =>
                     l.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                     l.Address.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                     l.City.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .Take(10)
                 .ToList();
         }
 
+        public async Task<List<Client>> ReturnAllClients()
+        {
+            await EnsureDataLoadedAsync();
+            return _allClients.ToList();
+        }
+
+        public async Task<List<Transportator>> ReturnAllTransportators()
+        {
+            await EnsureDataLoadedAsync();
+            return _allTransportators.ToList();
+        }
 
 
         private async Task EnsureDataLoadedAsync()

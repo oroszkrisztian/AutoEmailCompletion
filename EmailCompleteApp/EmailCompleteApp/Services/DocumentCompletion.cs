@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows; 
 
@@ -18,6 +19,7 @@ namespace EmailCompleteApp.Services
         private const string DocumentFolderName = "doc";
         private const string TemplateFileName = "comanda.docx";
         private const string GeneratedFolderName = "Generated";
+        private const string EmailFolderName = "Email"; // New folder for temporary email attachments
 
         public static DocumentCompletion Instance
         {
@@ -38,8 +40,9 @@ namespace EmailCompleteApp.Services
 
         /// <summary>
         /// Public entry point to generate the document. ALL required data is passed explicitly via parameters.
+        /// Returns the output path of the generated document.
         /// </summary>
-        public async Task GenerateAndSendDocumentAsync(
+        public async Task<string?> GenerateAndSendDocumentAsync(
             string numarComanda,
             string numarClient,
             string client,
@@ -62,12 +65,16 @@ namespace EmailCompleteApp.Services
             string locatieIncarcareAddress,
             string locatieIncarcareName,
             string locatieIncarcareCity,
-            string locatieIncarcareCode,
+            string locatieIncarcareCountryCode,
+            string locatieIncarcarePostalCode,
+            string locatieIncarcareCounty,
             // Location (delivery) components
             string locatieDescarcareAddress,
             string locatieDescarcareName,
             string locatieDescarcareCity,
-            string locatieDescarcareCode,
+            string locatieDescarcareCountryCode,
+            string locatieDescarcarePostalCode,
+            string locatieDescarcareCounty,
             string termenPlata,
             string commentUser,
             // Option arrays (must be supplied by caller UI/ViewModel)
@@ -86,7 +93,7 @@ namespace EmailCompleteApp.Services
                 if (!File.Exists(templatePath))
                 {
                     ShowError($"No template found. Add '{TemplateFileName}' under: {docDir}", "Template Missing");
-                    return;
+                    return null;
                 }
 
                 string generatedDir = Path.Combine(docDir, GeneratedFolderName);
@@ -114,14 +121,20 @@ namespace EmailCompleteApp.Services
                     clasa,
                     un,
                     numarInmatriculare,
+                    //incarcare
                     locatieIncarcareAddress,
                     locatieIncarcareName,
                     locatieIncarcareCity,
-                    locatieIncarcareCode,
+                    locatieIncarcareCountryCode,
+                    locatieIncarcarePostalCode,
+                    locatieIncarcareCounty,
+                    //descarcare
                     locatieDescarcareAddress,
                     locatieDescarcareName,
                     locatieDescarcareCity,
-                    locatieDescarcareCode,
+                    locatieDescarcareCountryCode,
+                    locatieDescarcarePostalCode,
+                    locatieDescarcareCounty,
                     termenPlata,
                     commentUser,
                     monedaOptions,
@@ -134,14 +147,15 @@ namespace EmailCompleteApp.Services
                 if (success)
                 {
                     ShowSuccess($"DOCX generated.\n\nDOCX: {outputPath}", "Ready to Send");
-                    
-                    // Open Thunderbird with the generated document attached
-                    OpenThunderbirdWithAttachment(outputPath);
+                    return outputPath;
                 }
+                
+                return null;
             }
             catch (Exception ex)
             {
                 ShowError($"Failed to generate document.\n\nError: {ex.Message}", "Error");
+                return null;
             }
         }
 
@@ -171,12 +185,16 @@ namespace EmailCompleteApp.Services
             string locatieIncarcareAddress,
             string locatieIncarcareName,
             string locatieIncarcareCity,
-            string locatieIncarcareCode,
+            string locatieIncarcareCountryCode,
+            string locatieIncarcarePostalCode,
+            string locatieIncarcareCounty,
             //descarcare
             string locatieDescarcareAddress,
             string locatieDescarcareName,
             string locatieDescarcareCity,
-            string locatieDescarcareCode,
+            string locatieDescarcareCountryCode,
+            string locatieDescarcarePostalCode,
+            string locatieDescarcareCounty,
             string termenPlata,
             string commentUser,
             string[] monedaOptions,
@@ -205,16 +223,20 @@ namespace EmailCompleteApp.Services
                 { "CantitateComanda", cantitate?.Trim() ?? string.Empty },
                 { "TipADR", GetOptionValue(tipAdrIndex, tipAdrOptions) },
                 { "Clasa", clasa?.Trim() ?? string.Empty },
-                { "UnInput", un?.Trim() ?? string.Empty },
+                { "UserUnInput", un?.Trim() ?? string.Empty },
                 { "NumarInmatriculare", numarInmatriculare?.Trim().ToUpper() ?? string.Empty },
-                { "AdresaIncarcare", locatieIncarcareAddress?.Trim() ?? string.Empty },
-                { "AddresaIncarcareName", locatieIncarcareName?.Trim() ?? string.Empty },
-                { "AddresaIncarcareCity", locatieIncarcareCity?.Trim() ?? string.Empty },
-                { "AddresaIncarcareCityCode", locatieIncarcareCode?.Trim() ?? string.Empty },
-                { "AdresaDescarcare", locatieDescarcareAddress?.Trim() ?? string.Empty },
-                { "AddresaDescarcareName", locatieDescarcareName?.Trim() ?? string.Empty },
-                { "AddresaDescarcareCity", locatieDescarcareCity?.Trim() ?? string.Empty },
-                { "AddresaDescarcareCityCode", locatieDescarcareCode?.Trim() ?? string.Empty },
+                { "LocatieIncarcareAddress", locatieIncarcareAddress?.Trim() ?? string.Empty },
+                { "LocatieIncarcareName", locatieIncarcareName?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCity", locatieIncarcareCity?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCountryCode", locatieIncarcareCountryCode?.Trim() ?? string.Empty },
+                { "LocatieIncarcarePostalCode", locatieIncarcarePostalCode?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCounty", locatieIncarcareCounty?.Trim() ?? string.Empty },
+                { "LocatieDescarcareAddress", locatieDescarcareAddress?.Trim() ?? string.Empty },
+                { "LocatieDescarcareName", locatieDescarcareName?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCity", locatieDescarcareCity?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCountryCode", locatieDescarcareCountryCode?.Trim() ?? string.Empty },
+                { "LocatieDescarcarePostalCode", locatieDescarcarePostalCode?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCounty", locatieDescarcareCounty?.Trim() ?? string.Empty },
                 { "TermenPlata", termenPlata?.Trim() ?? string.Empty },
                 { "Comments", commentUser?.Trim() ?? string.Empty }
             });
@@ -311,14 +333,24 @@ namespace EmailCompleteApp.Services
                 if (string.IsNullOrEmpty(text)) continue;
 
                 string modifiedText = text;
+                bool termenPlataReplaced = false;
                 foreach (var replacement in replacements)
                 {
                     if (string.IsNullOrEmpty(replacement.Key)) continue;
+                    // Check if termenPlata is being replaced
+                    if (replacement.Key.Equals("termenPlata", StringComparison.OrdinalIgnoreCase) && text.Contains(replacement.Key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        termenPlataReplaced = true;
+                    }
                     modifiedText = modifiedText.Replace(replacement.Key, replacement.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
                 }
                 if (!string.Equals(text, modifiedText, StringComparison.Ordinal))
                 {
                     run.SetText(modifiedText, 0);
+                    if (termenPlataReplaced)
+                    {
+                        run.SetColor("FF0000"); 
+                    }
                 }
             }
         }
@@ -328,19 +360,22 @@ namespace EmailCompleteApp.Services
         #region Thunderbird Integration
 
         /// <summary>
-        /// Opens Thunderbird email client with the specified document attached to a new email
+        /// Opens Thunderbird email client with multiple documents attached to a new email
         /// </summary>
-        private static void OpenThunderbirdWithAttachment(string attachmentPath)
+        private static void OpenThunderbirdWithAttachments(params string[] attachmentPaths)
         {
             try
             {
-                if (!File.Exists(attachmentPath))
+                // Validate all files exist
+                foreach (var path in attachmentPaths)
                 {
-                    ShowWarning($"Document not found: {attachmentPath}", "File Not Found");
-                    return;
+                    if (!File.Exists(path))
+                    {
+                        ShowWarning($"Document not found: {path}", "File Not Found");
+                        return;
+                    }
                 }
 
-                // Try common Thunderbird installation paths
                 string[] possibleThunderbirdPaths = new[]
                 {
                     @"C:\Program Files\Mozilla Thunderbird\thunderbird.exe",
@@ -363,25 +398,24 @@ namespace EmailCompleteApp.Services
                 {
                     ShowWarning(
                         "Thunderbird not found in default installation locations.\n\n" +
-                        "Please open Thunderbird manually and attach the document from:\n" +
-                        $"{attachmentPath}",
+                        "Please open Thunderbird manually and attach the documents.",
                         "Thunderbird Not Found");
                     return;
                 }
 
-                // Escape the file path for command line
-                string escapedPath = attachmentPath.Replace("\\", "\\\\");
+                // Build comma-separated list of file URIs for multiple attachments
+                var fileUris = attachmentPaths.Select(path => new Uri(path).AbsoluteUri);
+                string attachmentList = string.Join(",", fileUris);
 
-                // Launch Thunderbird with compose window and attachment
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = thunderbirdPath,
-                    Arguments = $"-compose \"attachment='{attachmentPath}'\"",
+                    Arguments = $"-compose \"attachment='{attachmentList}'\"",
                     UseShellExecute = false
                 };
 
                 Process.Start(startInfo);
-                Debug.WriteLine($"✅ Opened Thunderbird with attachment: {attachmentPath}");
+                Debug.WriteLine($"✅ Opened Thunderbird with {attachmentPaths.Length} attachment(s)");
             }
             catch (Exception ex)
             {
@@ -389,9 +423,17 @@ namespace EmailCompleteApp.Services
                 ShowWarning(
                     $"Could not open Thunderbird automatically.\n\n" +
                     $"Error: {ex.Message}\n\n" +
-                    $"Please open Thunderbird manually and attach:\n{attachmentPath}",
+                    $"Please open Thunderbird manually.",
                     "Thunderbird Error");
             }
+        }
+
+        /// <summary>
+        /// Opens Thunderbird email client with the specified document attached to a new email
+        /// </summary>
+        private static void OpenThunderbirdWithAttachment(string attachmentPath)
+        {
+            OpenThunderbirdWithAttachments(attachmentPath);
         }
 
         #endregion
@@ -428,6 +470,92 @@ namespace EmailCompleteApp.Services
         private static void ShowWarning(string message, string title)
         {
             Application.Current.Dispatcher.Invoke(() => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning));
+        }
+
+        /// <summary>
+        /// Generates page2.doc in the Email folder, returns the path.
+        /// Files will be cleaned up when user starts a new order.
+        /// </summary>
+        public async Task<string?> GenerateAndSendPage2DocAsync(
+            string templatePath,
+            Dictionary<string, string> replacements,
+            string numarComanda
+        )
+        {
+            try
+            {
+                // Check if template exists
+                if (!File.Exists(templatePath))
+                {
+                    Debug.WriteLine($"❌ page2.docx template not found at: {templatePath}");
+                    return null;
+                }
+
+                // Find project directory and Email folder
+                string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
+                string projectDir = FindProjectDirectory(projectRoot);
+                string docDir = Path.Combine(projectDir, DocumentFolderName);
+                string emailDir = Path.Combine(docDir, EmailFolderName);
+                
+                // Create Email folder if it doesn't exist
+                Directory.CreateDirectory(emailDir);
+
+                // Create file with proper naming: Comanda {number}.doc in Email folder
+                string outputFileName = $"Comanda {numarComanda}.doc";
+                string outputPath = Path.Combine(emailDir, outputFileName);
+
+                Debug.WriteLine($"📝 Generating page2.doc at: {outputPath}");
+
+                // Generate the DOC file (synchronous to ensure it's written before returning)
+                bool success = GenerateWordDocument(templatePath, outputPath, replacements);
+
+                if (!success)
+                {
+                    Debug.WriteLine($"❌ Failed to generate Word document");
+                    return null;
+                }
+
+                // Verify file exists and has content
+                if (!File.Exists(outputPath))
+                {
+                    Debug.WriteLine($"❌ File was not created: {outputPath}");
+                    return null;
+                }
+
+                var fileInfo = new FileInfo(outputPath);
+                if (fileInfo.Length == 0)
+                {
+                    Debug.WriteLine($"❌ File is empty: {outputPath}");
+                    return null;
+                }
+
+                Debug.WriteLine($"✅ Generated page2.doc at: {outputPath} (Size: {fileInfo.Length} bytes)");
+                
+                // Small delay to ensure Windows has fully released file handles
+                await Task.Delay(200);
+
+                return outputPath;
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Failed to generate page2.doc.\n\nError: {ex.Message}", "Error");
+                Debug.WriteLine($"❌ Exception in GenerateAndSendPage2DocAsync: {ex}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Opens Thunderbird with the specified attachments.
+        /// Files in Email folder will be cleaned up when the next order is created.
+        /// </summary>
+        public void OpenThunderbirdAndCleanup(string[] attachments, string[] tempFilesToDelete = null)
+        {
+            OpenThunderbirdWithAttachments(attachments);
+            
+            // Note: tempFilesToDelete parameter is kept for backward compatibility but no longer used.
+            // Files in Email folder will be cleaned up automatically when user starts a new order.
+            Debug.WriteLine($"📧 Thunderbird opened with {attachments.Length} attachment(s)");
+            Debug.WriteLine($"ℹ️ Files will be automatically cleaned up when next order is created");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using EmailCompleteApp.Models;
 using EmailCompleteApp.Services;
 using EmailCompleteApp.Services.Repositories;
@@ -10,22 +11,66 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace EmailCompleteApp.ViewModels
 {
     public partial class HistoryPageViewModel: ObservableObject
     {
         private readonly HistoryRepository _historyRepository;
-        public ObservableCollection<HistoryTransport> HistoryData { get; } = new ();
         
+        private ObservableCollection<HistoryTransport> _allHistoryData = new();
+        public ObservableCollection<HistoryTransport> HistoryData { get; } = new ();
         
         [ObservableProperty]
         private bool isLoading;
+
+        [ObservableProperty]
+        private string orderNumberSearchText = string.Empty;
+
+        [ObservableProperty]
+        private string clientNameSearchText = string.Empty;
+
+        // Event to notify when edit is requested
+        public event Action<HistoryTransport>? EditRequested;
 
         public HistoryPageViewModel()
         {
             _historyRepository = HistoryRepository.Instance;
             _ = InitializeHistoryData();
+        }
+
+        partial void OnOrderNumberSearchTextChanged(string value)
+        {
+            FilterHistory();
+        }
+
+        partial void OnClientNameSearchTextChanged(string value)
+        {
+            FilterHistory();
+        }
+
+        private void FilterHistory()
+        {
+            var filtered = _allHistoryData.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(OrderNumberSearchText))
+            {
+                filtered = filtered.Where(h =>
+                    h.NumarComanda.Contains(OrderNumberSearchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(ClientNameSearchText))
+            {
+                filtered = filtered.Where(h =>
+                    (h.Client ?? string.Empty).Contains(ClientNameSearchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            HistoryData.Clear();
+            foreach (var item in filtered)
+            {
+                HistoryData.Add(item);
+            }
         }
 
         private async Task InitializeHistoryData()
@@ -37,17 +82,23 @@ namespace EmailCompleteApp.ViewModels
                 var response = await _historyRepository.LoadAllByOrderNumDescAsync();
                 if (response != null)
                 {
-                    HistoryData.Clear();
+                    _allHistoryData.Clear();
                     foreach (HistoryTransport item in response)
                     {
-                        HistoryData.Add(item);
+                        _allHistoryData.Add(item);
                         await PrintLoadedData(item);
                     }
+                    FilterHistory(); // Apply initial filter
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to initialize history data: ", ex);
+                Debug.WriteLine($"❌ Failed to initialize history data: {ex.Message}");
+                MessageBox.Show(
+                    $"Eroare la încărcarea istoricului:\n\n{ex.Message}",
+                    "Eroare",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
             finally
             {
@@ -55,13 +106,28 @@ namespace EmailCompleteApp.ViewModels
             }
         }
 
+        [RelayCommand]
+        public void EditOrder(HistoryTransport historyItem)
+        {
+            if (historyItem != null)
+            {
+                Debug.WriteLine($"Edit requested for order: {historyItem.NumarComanda}");
+                EditRequested?.Invoke(historyItem);
+            }
+        }
+
+        [RelayCommand]
         public void OpenDocument(string orderNumber)
         {
+            bool fileNotFound = false;
+            string errorMessage = string.Empty;
             try
             {
                 if (string.IsNullOrWhiteSpace(orderNumber))
                 {
-                    throw new FileNotFoundException("Order number is null or empty.");
+                    fileNotFound = true;
+                    errorMessage = "Order number is null or empty.";
+                    return;
                 }
 
                 string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
@@ -86,22 +152,40 @@ namespace EmailCompleteApp.ViewModels
                         }
                         else
                         {
-                            throw new FileNotFoundException($"Order document not found: {expectedFileName} in {generatedDir}");
+                            fileNotFound = true;
+                            errorMessage = $"Order document not found: {expectedFileName} in {generatedDir}";
+                            return;
                         }
                     }
                     else
                     {
-                        throw new DirectoryNotFoundException($"Generated documents folder not found: {generatedDir}");
+                        fileNotFound = true;
+                        errorMessage = $"Generated documents folder not found: {generatedDir}";
+                        return;
                     }
                 }
 
                 // Open with default associated application
                 Task.Run(() => Process.Start(new ProcessStartInfo(fileToOpen) { UseShellExecute = true }));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                // Preserve original behavior of throwing a FileNotFoundException, include inner details.
-                throw new FileNotFoundException("Ordr document not found " + ex);
+                fileNotFound = true;
+                errorMessage = $"Order document not found: {ex.Message}";
+            }
+            finally
+            {
+                if (fileNotFound)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show(
+                            string.IsNullOrEmpty(errorMessage) ? "File not found. Please check the order number or verify the document's availability." : errorMessage,
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    });
+                }
             }
         }
 
@@ -126,7 +210,15 @@ namespace EmailCompleteApp.ViewModels
 
         public static Task PrintLoadedData(HistoryTransport item)
         {
-            Debug.WriteLine($"History Item - ID: {item.Id}, Client: {item.ClientName}, Route: {item.Route}, Date Loaded: {item.DateLoaded}, Date Unloaded: {item.DateUnloaded}, Client Tarif: {item.ClientTarif}, Transportator Tarif: {item.TransportatorTarif}, Created At: {item.CreatedAt}, Order Number: {item.NumarComanda}");
+            var route = $"{item.LocatieIncarcareCity ?? "?"} - {item.LocatieDescarcareCity ?? "?"}";
+            var clientTarif = item.Tarif.HasValue ? $"{item.Tarif.Value}" : "N/A";
+            var transportatorTarif = item.TransportatorTarif.HasValue ? $"{item.TransportatorTarif.Value}" : "N/A";
+            
+            Debug.WriteLine($"History Item - ID: {item.Id}, Client: {item.Client}, Route: {route}, " +
+                          $"Date Loaded: {item.DataIncarcare?.ToString("dd/MM/yyyy") ?? "N/A"}, " +
+                          $"Date Unloaded: {item.DataDescarcare?.ToString("dd/MM/yyyy") ?? "N/A"}, " +
+                          $"Client Tarif: {clientTarif}, Transportator Tarif: {transportatorTarif}, " +
+                          $"Created At: {item.CreatedAt}, Order Number: {item.NumarComanda}");
             return Task.CompletedTask;
         }
 

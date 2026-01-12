@@ -17,7 +17,7 @@ namespace EmailCompleteApp
 
         private void ClientButton_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to Client page
+            
             MainContentArea.Content = new ClientPage();
             _selected = SelectedButton.Client;
             UpdateButtonVisuals();
@@ -38,6 +38,22 @@ namespace EmailCompleteApp
         }
 
         private void ComandaTransportIstorict_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentArea.Content = new HistoryPage();
+            _selected = SelectedButton.Istoric;
+            UpdateButtonVisuals();
+        }
+
+        // Public method to navigate to ComandaTransport page (called from other pages)
+        public void NavigateToComandaTransport(ComandaTransport page)
+        {
+            MainContentArea.Content = page;
+            _selected = SelectedButton.Comanda;
+            UpdateButtonVisuals();
+        }
+
+        // Public method to navigate back to History page
+        public void NavigateToHistory()
         {
             MainContentArea.Content = new HistoryPage();
             _selected = SelectedButton.Istoric;
@@ -141,7 +157,6 @@ namespace EmailCompleteApp
 
         private void UpdateButtonVisuals()
         {
-            // Reset all to default first
             ClientButtonPage.Background = Brushes.White;
             ClientButtonPage.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
 
@@ -154,7 +169,6 @@ namespace EmailCompleteApp
             ComandaTransportIstoricButton.Background = Brushes.White;
             ComandaTransportIstoricButton.Foreground = new SolidColorBrush(Color.FromRgb(39, 37, 55));
 
-            // Apply selected visuals
             var selectedBrush = new SolidColorBrush(Color.FromRgb(100, 150, 255));
             switch (_selected)
             {

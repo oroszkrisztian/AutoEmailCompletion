@@ -8,9 +8,9 @@ namespace EmailCompleteApp.Services
    
     public static class DatabaseConfig
     {
-        //pQxuAQckMp2zfXgk
+        
 
-        private const string DatabaseUri = "postgresql://postgres.mvgfbmdgnzfisuacduqw:pQxuAQckMp2zfXgk@aws-1-eu-north-1.pooler.supabase.com:5432/postgres";
+        private const string DatabaseUri = "postgresql://postgres.mvgfbmdgnzfisuacduqw:41VR1fwZXvtqpAcr@aws-1-eu-north-1.pooler.supabase.com:5432/postgres";
 
         public static string RawUri => DatabaseUri;
 

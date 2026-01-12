@@ -7,6 +7,9 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <local:InvertedBooleanToVisibilityConverter x:Key="InverseBoolToVisConverter"/>
+        
         <!-- Light theme color scheme -->
         <SolidColorBrush x:Key="BackgroundColor" Color="#F8F9FA"/>
         <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF"/>
@@ -15,6 +18,9 @@
         <SolidColorBrush x:Key="SendEmailHover" Color="#20C997"/>
         <SolidColorBrush x:Key="BorderColor" Color="Black"/>
         <SolidColorBrush x:Key="BorderFocus" Color="#007BFF"/>
+        <SolidColorBrush x:Key="DangerColor" Color="#DC3545"/>
+        <SolidColorBrush x:Key="DangerHover" Color="#C82333"/>
+        
         <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
             <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
@@ -27,14 +33,103 @@
             <Setter Property="CaretBrush" Value="{StaticResource TextColor}"/>
             <Setter Property="SelectionBrush" Value="{StaticResource PrimaryColor}"/>
         </Style>
-        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Height" Value="40"/>
+        
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource SendEmailHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="DangerButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource DangerHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- DataGrid Row Style - Better spacing and hover effect -->
+        <Style x:Key="DataGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="MinHeight" Value="48"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8F4FF"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="False"/>
+                        <Condition Property="AlternationIndex" Value="1"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="#FAFBFC"/>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Cell Style - Better padding and spacing -->
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Column Header Style -->
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Foreground" Value="#495057"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="BorderBrush" Value="#DEE2E6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
     </UserControl.Resources>
@@ -45,79 +140,212 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Header and Action Button -->
         <Grid Grid.Row="0" Margin="20,20,20,0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Locatie"
-               FontSize="24"
-               FontWeight="Bold"
-               Margin="0,0,40,0"
-               Foreground="{StaticResource TextColor}"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"/>
-            <Button Content="Salvare"
-            Background="{StaticResource PrimaryColor}"
-            Foreground="White"
-            BorderThickness="0"
-            Padding="16,8"
-            FontSize="14"
-            FontWeight="SemiBold"
-            Cursor="Hand"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            Command="{Binding SaveCommand}">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="ButtonBorder"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="6"
-                                    Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource SendEmailHover}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Button.Style>
-            </Button>
+            
+            <!-- Page Title -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="0">
+                <TextBlock Text="Locații"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="0,0,20,0"
+                           Foreground="{StaticResource TextColor}"/>
+            </StackPanel>
+            
+            <!-- Compact Search Box -->
+            <Border Grid.Column="1" 
+                    Background="White"
+                    BorderBrush="#DEE2E6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="8,4"
+                    MinWidth="250"
+                    VerticalAlignment="Center"
+                    Margin="0,0,20,0"
+                    Visibility="{Binding IsAddingNew, Converter={StaticResource InverseBoolToVisConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Text="Căutați:" 
+                              FontSize="12" 
+                              Foreground="#6C757D"
+                              VerticalAlignment="Center"
+                              Margin="0,0,8,0"
+                              Grid.Column="0"/>
+                    
+                    <TextBlock Text="🔍" 
+                              FontSize="12" 
+                              VerticalAlignment="Center"
+                              Margin="0,0,6,0"
+                              Grid.Column="1"/>
+                    
+                    <TextBox Grid.Column="2"
+                            Text="{Binding LocationSearchText, UpdateSourceTrigger=PropertyChanged}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="13"
+                            VerticalContentAlignment="Center"
+                            Height="24">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="nume, oraș, adresă..." 
+                                                                  Foreground="#AAAAAA"
+                                                                  FontSize="13"
+                                                                  Margin="2,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </Grid>
+            </Border>
+            
+            <!-- Add New Button (visible when showing list) -->
+            <Button Content="Adaugă"
+                    Background="{StaticResource PrimaryColor}"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Padding="16,8"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                    Cursor="Hand"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Command="{Binding AddNewCommand}"
+                    Visibility="{Binding IsAddingNew, Converter={StaticResource InverseBoolToVisConverter}}"
+                    Grid.Column="3"
+                    Style="{StaticResource ModernButtonStyle}"/>
+            
+            <!-- Submit and Cancel Buttons (visible when showing form) -->
+            <StackPanel Orientation="Horizontal" 
+                        Grid.Column="3"
+                        Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisConverter}}">
+                <Button Content="Anulează"
+                        Background="{StaticResource DangerColor}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="16,8"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Cursor="Hand"
+                        Margin="0,0,10,0"
+                        Command="{Binding CancelCommand}"
+                        Style="{StaticResource DangerButtonStyle}"/>
+                <Button Content="Trimite"
+                        Background="{StaticResource PrimaryColor}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="16,8"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Cursor="Hand"
+                        Command="{Binding SubmitCommand}"
+                        Style="{StaticResource ModernButtonStyle}"/>
+            </StackPanel>
         </Grid>
 
-        <StackPanel Grid.Row="1" MaxWidth="900" Margin="40,40,40,0" VerticalAlignment="Top">
-            <!-- Firm Name -->
-            <TextBlock Text="Nume locatie:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-            <TextBox Text="{Binding LocationName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" Margin="20,20,20,20">
+            <!-- List View -->
+            <Border Background="{StaticResource SurfaceColor}"
+                    CornerRadius="8"
+                    Padding="20"
+                    Visibility="{Binding IsAddingNew, Converter={StaticResource InverseBoolToVisConverter}}">
+                <DataGrid x:Name="LocationDataGrid"
+                          ItemsSource="{Binding Locations}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          SelectionChanged="LocationDataGrid_SelectionChanged"
+                          GridLinesVisibility="None"
+                          HeadersVisibility="Column"
+                          Background="White"
+                          BorderThickness="0"
+                          HorizontalScrollBarVisibility="Auto"
+                          AlternationCount="2"
+                          RowStyle="{StaticResource DataGridRowStyle}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                        <DataGridTextColumn Header="Adresă" Binding="{Binding Address}" Width="*" MinWidth="200"/>
+                        <DataGridTextColumn Header="Cod Țară" Binding="{Binding CountryCode}" Width="*" MinWidth="80"/>
+                        <DataGridTextColumn Header="Cod Poștal" Binding="{Binding PostalCode}" Width="*" MinWidth="100"/>
+                        <DataGridTextColumn Header="Oraș" Binding="{Binding City}" Width="*" MinWidth="100"/>
+                        <DataGridTextColumn Header="Județ" Binding="{Binding County}" Width="*" MinWidth="100"/>
+                        
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
 
-            <!-- Firm Address -->
-            <TextBlock Text="Adresa locatie:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-            <TextBox Text="{Binding LocationAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+            <!-- Form View -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
+                    <!-- Name -->
+                    <TextBlock Text="Nume locație:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding LocationName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
 
-            <!-- City code and city side by side -->
-            <Grid Margin="0,16,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Cod oraș:" MinWidth="220" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding LocationCityCode, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                    <!-- Address -->
+                    <TextBlock Text="Adresa locație:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding LocationAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+
+                    <!-- City, County, Country Code, Postal Code side by side -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="Cod țară:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding LocationCountryCode, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                            <TextBlock Text="Cod poștal:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding LocationPostalCode, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="0,0,8,8">
+                            <TextBlock Text="Oraș:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding LocationCity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="3" Margin="0,0,0,0">
+                            <TextBlock Text="Județ:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding LocationCounty, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Margin="16,0,0,0">
-                    <TextBlock Text="Oraș locație:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding LocationCity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                </StackPanel>
-            </Grid>
-        </StackPanel>
-       
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

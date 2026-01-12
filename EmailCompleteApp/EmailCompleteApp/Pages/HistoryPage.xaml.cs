@@ -24,22 +24,58 @@ namespace EmailCompleteApp.Pages
     public partial class HistoryPage : UserControl
     {
         private HistoryPageViewModel? _viewModel;
+
         public HistoryPage()
         {
             InitializeComponent();
             DataContext = new HistoryPageViewModel();
             _viewModel = DataContext as HistoryPageViewModel;
 
+            if (_viewModel != null)
+            {
+                _viewModel.EditRequested += OnEditRequested;
+            }
         }
 
-        private void HistoryListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnEditRequested(HistoryTransport historyItem)
         {
-            if (HistoryListBox.SelectedItem is HistoryTransport selectedItem)
+            // Navigate to ComandaTransport page with edit data
+            var mainWindow = Window.GetWindow(this) as MainWindow;
+            if (mainWindow != null)
             {
-                _viewModel.OpenDocument(selectedItem.NumarComanda.ToString());
-                MessageBox.Show($"Clicked on history item: {selectedItem.NumarComanda}");
+                var comandaPage = new ComandaTransport(historyItem);
+                mainWindow.NavigateToComandaTransport(comandaPage);
             }
-            HistoryListBox.UnselectAll();
+        }
+
+        private void HistoryDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_viewModel != null && HistoryDataGrid.SelectedItem is HistoryTransport selectedHistory)
+            {
+                if (!string.IsNullOrWhiteSpace(selectedHistory.NumarComanda))
+                {
+                    _viewModel.OpenDocument(selectedHistory.NumarComanda);
+                }
+            }
+        }
+
+        private void OpenDocument_Click(object sender, RoutedEventArgs e)
+        {
+            if (HistoryDataGrid.SelectedItem is HistoryTransport historyItem)
+            {
+                if (!string.IsNullOrWhiteSpace(historyItem.NumarComanda))
+                {
+                    _viewModel?.OpenDocument(historyItem.NumarComanda);
+                }
+            }
+        }
+
+        private void EditOrder_Click(object sender, RoutedEventArgs e)
+        {
+            if (HistoryDataGrid.SelectedItem is HistoryTransport historyItem)
+            {
+                _viewModel?.EditOrder(historyItem);
+            }
         }
     }
 }

@@ -8,6 +8,7 @@
       d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:TabIndexToHeaderConverter x:Key="TabIndexToHeaderConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
         <SolidColorBrush x:Key="BackgroundColor" Color="#F8F9FA"/>
         <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="PrimaryColor" Color="#007BFF"/>
@@ -15,6 +16,12 @@
         <SolidColorBrush x:Key="SendEmailHover" Color="#20C997"/>
         <SolidColorBrush x:Key="BorderColor" Color="Black"/>
         <SolidColorBrush x:Key="BorderFocus" Color="#007BFF"/>
+        <SolidColorBrush x:Key="DangerColor" Color="#DC3545"/>
+        <SolidColorBrush x:Key="DangerHover" Color="#C82333"/>
+        
+        <!-- Inverted Boolean to Visibility Converter -->
+        <local:InvertedBooleanToVisibilityConverter x:Key="InvertedBoolToVisibility"/>
+        
         <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
             <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
@@ -68,6 +75,105 @@
                     <Setter Property="Background" Value="#B6D4FE"/>
                 </Trigger>
             </Style.Triggers>
+        </Style
+        >
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="6"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource SendEmailHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="DangerButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="6"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource DangerHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- DataGrid Row Style - Better spacing and hover effect -->
+        <Style x:Key="DataGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="MinHeight" Value="48"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8F4FF"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="False"/>
+                        <Condition Property="AlternationIndex" Value="1"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="#FAFBFC"/>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Cell Style - Better padding and spacing -->
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- DataGrid Column Header Style -->
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Foreground" Value="#495057"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="BorderBrush" Value="#DEE2E6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
     </UserControl.Resources>
     <Grid Background="{StaticResource BackgroundColor}">
@@ -76,13 +182,17 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header and Mode Switch -->
+        <!-- Header and Action Button -->
         <Grid Grid.Row="0" Margin="20,20,20,0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            
+            <!-- Page Title -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="0">
                 <TextBlock x:Name="PageTitle"
                    Text="{Binding SelectedTabIndex, Converter={StaticResource TabIndexToHeaderConverter}}"
                    FontSize="24"
@@ -90,7 +200,74 @@
                    Margin="0,0,20,0"
                    Foreground="{StaticResource TextColor}"/>
             </StackPanel>
-            <Button Content="Insert"
+            
+            <!-- Compact Search Box -->
+            <Border Grid.Column="1" 
+                    Background="White"
+                    BorderBrush="#DEE2E6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="8,4"
+                    MinWidth="250"
+                    VerticalAlignment="Center"
+                    Margin="0,0,20,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Text="Căutați:" 
+                              FontSize="12" 
+                              Foreground="#6C757D"
+                              VerticalAlignment="Center"
+                              Margin="0,0,8,0"
+                              Grid.Column="0"/>
+                    
+                    <TextBlock Text="🔍" 
+                              FontSize="12" 
+                              VerticalAlignment="Center"
+                              Margin="0,0,6,0"
+                              Grid.Column="1"/>
+                    
+                    <TextBox Grid.Column="2"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="13"
+                            VerticalContentAlignment="Center"
+                            Height="24">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+                                <Setter Property="Text" Value="{Binding ClientSearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedTabIndex}" Value="1">
+                                        <Setter Property="Text" Value="{Binding TransportatorSearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTrigger>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <VisualBrush Stretch="None" AlignmentX="Left">
+                                                    <VisualBrush.Visual>
+                                                        <TextBlock Text="nume..." 
+                                                                  Foreground="#AAAAAA"
+                                                                  FontSize="13"
+                                                                  Margin="2,0,0,0"/>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </Grid>
+            </Border>
+            
+            <!-- Add New Button (visible when showing list) -->
+            <Button Content="Adaugă"
                     Background="{StaticResource PrimaryColor}"
                     Foreground="White"
                     BorderThickness="0"
@@ -100,88 +277,175 @@
                     Cursor="Hand"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Command="{Binding InsertCommand}"
-                    Grid.Column="1">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="ButtonBorder"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="6"
-                                    Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource SendEmailHover}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Button.Style>
-            </Button>
+                    Command="{Binding AddNewCommand}"
+                    Visibility="{Binding IsAddingNew, Converter={StaticResource InvertedBoolToVisibility}}"
+                    Grid.Column="3"
+                    Style="{StaticResource ModernButtonStyle}"/>
+            
+            <!-- Submit and Cancel Buttons (visible when showing form) -->
+            <StackPanel Orientation="Horizontal" 
+                        Grid.Column="3"
+                        Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisibility}}">
+                <Button Content="Anulează"
+                        Background="{StaticResource DangerColor}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="16,8"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Cursor="Hand"
+                        Margin="0,0,10,0"
+                        Command="{Binding CancelCommand}"
+                        Style="{StaticResource DangerButtonStyle}"/>
+                <Button Content="Trimite"
+                        Background="{StaticResource PrimaryColor}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="16,8"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Cursor="Hand"
+                        Command="{Binding SubmitCommand}"
+                        Style="{StaticResource ModernButtonStyle}"/>
+            </StackPanel>
         </Grid>
 
-        <!-- Inputs -->
+        <!-- Main Content -->
         <TabControl x:Name="ModeTabControl" Grid.Row="1" Margin="20,20,20,20" SelectedIndex="{Binding SelectedTabIndex}">
             <!-- Client Tab -->
             <TabItem Header="Client">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
-                        <TextBlock Text="Nume client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
-                        
-                        <TextBlock Text="Adresa client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding ClientAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="Banca client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding ClientBank, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="IBAN client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding ClientIban, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="VAT number:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
-                        <TextBox Text="{Binding ClientVatNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="Camera de Comert:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding ClientCameraDeComert, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="Termenul de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding ClientTermenPlata, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-                </ScrollViewer>
+                <Grid>
+                    <!-- List View -->
+                    <Border Background="{StaticResource SurfaceColor}"
+                            CornerRadius="8"
+                            Padding="20"
+                            Visibility="{Binding IsAddingNew, Converter={StaticResource InvertedBoolToVisibility}}">
+                        <DataGrid x:Name="ClientDataGrid"
+                                  ItemsSource="{Binding Clients}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserResizeRows="False"
+                                  SelectionMode="Single"
+                                  SelectionUnit="FullRow"
+                                  GridLinesVisibility="None"
+                                  HeadersVisibility="Column"
+                                  Background="White"
+                                  BorderThickness="0"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  AlternationCount="2"
+                                  RowStyle="{StaticResource DataGridRowStyle}"
+                                  CellStyle="{StaticResource DataGridCellStyle}"
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                  SelectionChanged="ClientDataGrid_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Adresă" Binding="{Binding Address}" Width="*" MinWidth="200"/>
+                                <DataGridTextColumn Header="Bancă" Binding="{Binding Bank}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="IBAN" Binding="{Binding IBAN}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="CUI" Binding="{Binding VATNumber}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="Camera de Comerț" Binding="{Binding CameraDeComert}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Termen Plată" Binding="{Binding TermenulDePlata}" Width="*" MinWidth="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Form View -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
+                            <TextBlock Text="Nume client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                            
+                            <TextBlock Text="Adresă client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ClientAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="Bancă client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ClientBank, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="IBAN client:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ClientIban, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="CUI:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
+                            <TextBox Text="{Binding ClientVatNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="Camera de Comerț:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ClientCameraDeComert, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="Termen de plată:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding ClientTermenPlata, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
             </TabItem>
 
             <!-- Transportator Tab -->
             <TabItem Header="Transportator">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
-                        <TextBlock Text="Nume transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding TransportatorName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
-                        
-                        <TextBlock Text="Adresa transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding TransportatorAdresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="Banca transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding TransportatorContBancar, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                        
-                        <TextBlock Text="IBAN transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding TransportatorIban, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                <Grid>
+                    <!-- List View -->
+                    <Border Background="{StaticResource SurfaceColor}"
+                            CornerRadius="8"
+                            Padding="20"
+                            Visibility="{Binding IsAddingNew, Converter={StaticResource InvertedBoolToVisibility}}">
+                        <DataGrid x:Name="TransportatorDataGrid"
+                                  ItemsSource="{Binding Transportators}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserResizeRows="False"
+                                  SelectionMode="Single"
+                                  SelectionUnit="FullRow"
+                                  GridLinesVisibility="None"
+                                  HeadersVisibility="Column"
+                                  Background="White"
+                                  BorderThickness="0"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  AlternationCount="2"
+                                  RowStyle="{StaticResource DataGridRowStyle}"
+                                  CellStyle="{StaticResource DataGridCellStyle}"
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                  SelectionChanged="TransportatorDataGrid_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Adresă" Binding="{Binding Address}" Width="*" MinWidth="200"/>
+                                <DataGridTextColumn Header="Bancă" Binding="{Binding Bank}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="IBAN" Binding="{Binding IBAN}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="CUI" Binding="{Binding VATNumber}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="Camera de Comerț" Binding="{Binding CameraDeComert}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Termen Plată" Binding="{Binding TermenulDePlata}" Width="*" MinWidth="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
 
-                        <TextBlock Text="VAT number:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
-                        <TextBox Text="{Binding TransportatorVatNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                    <!-- Form View -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel MaxWidth="900" Margin="20,20,20,0" VerticalAlignment="Top">
+                            <TextBlock Text="Nume transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding TransportatorName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,16"/>
+                            
+                            <TextBlock Text="Adresă transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding TransportatorAdresa, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="Bancă transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding TransportatorContBancar, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            
+                            <TextBlock Text="IBAN transportator:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding TransportatorIban, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
 
-                        <TextBlock Text="Camera de Comert:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding TransportatorCameraDeComert, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                            <TextBlock Text="CUI:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,16,0,4"/>
+                            <TextBox Text="{Binding TransportatorVatNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
 
-                        <TextBlock Text="Termenul de plata:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding TransportatorTermenPlata, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
-                    </StackPanel>
-                </ScrollViewer>
+                            <TextBlock Text="Camera de Comerț:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding TransportatorCameraDeComert, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                            <TextBlock Text="Termen de plată:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding TransportatorTermenPlata, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>
