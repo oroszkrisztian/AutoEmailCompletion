@@ -337,8 +337,21 @@
                                   AlternationCount="2"
                                   RowStyle="{StaticResource DataGridRowStyle}"
                                   CellStyle="{StaticResource DataGridCellStyle}"
-                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
-                                  SelectionChanged="ClientDataGrid_SelectionChanged">
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Edit" Click="EditClient_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="✏️" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Șterge" Click="DeleteClient_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🗑️" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*" MinWidth="150"/>
                                 <DataGridTextColumn Header="Adresă" Binding="{Binding Address}" Width="*" MinWidth="200"/>
@@ -405,8 +418,21 @@
                                   AlternationCount="2"
                                   RowStyle="{StaticResource DataGridRowStyle}"
                                   CellStyle="{StaticResource DataGridCellStyle}"
-                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
-                                  SelectionChanged="TransportatorDataGrid_SelectionChanged">
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Edit" Click="EditTransportator_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="✏️" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Șterge" Click="DeleteTransportator_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🗑️" FontSize="14"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*" MinWidth="150"/>
                                 <DataGridTextColumn Header="Adresă" Binding="{Binding Address}" Width="*" MinWidth="200"/>

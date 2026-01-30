@@ -16,6 +16,22 @@ namespace EmailCompleteApp.Pages
             DataContext = new LocationViewModel();
         }
 
+        private void EditLocation_Click(object sender, RoutedEventArgs e)
+        {
+            if (LocationDataGrid.SelectedItem is Location location)
+            {
+                ViewModel?.EditLocation(location);
+            }
+        }
+
+        private void DeleteLocation_Click(object sender, RoutedEventArgs e)
+        {
+            if (LocationDataGrid.SelectedItem is Location location)
+            {
+                _ = ViewModel?.DeleteLocationCommand.ExecuteAsync(location);
+            }
+        }
+
         private void LocationDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is DataGrid grid && grid.SelectedItem is Location location)

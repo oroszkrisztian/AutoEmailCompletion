@@ -80,6 +80,7 @@ namespace EmailCompleteApp.Services.Repositories
                     // Update all fields
                     existing.NumarClient = history.NumarClient;
                     existing.Client = history.Client;
+                    existing.Contact = history.Contact;
                     existing.Tarif = history.Tarif;
                     existing.MonedaIndex = history.MonedaIndex;
                     existing.TipIndex = history.TipIndex;
@@ -141,6 +142,7 @@ namespace EmailCompleteApp.Services.Repositories
                 existing.NumarComanda = history.NumarComanda;
                 existing.NumarClient = history.NumarClient;
                 existing.Client = history.Client;
+                existing.Contact = history.Contact;
                 existing.Tarif = history.Tarif;
                 existing.MonedaIndex = history.MonedaIndex;
                 existing.TipIndex = history.TipIndex;

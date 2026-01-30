@@ -19,7 +19,7 @@ namespace EmailCompleteApp.Services
         private const string DocumentFolderName = "doc";
         private const string TemplateFileName = "comanda.docx";
         private const string GeneratedFolderName = "Generated";
-        private const string EmailFolderName = "Email"; // New folder for temporary email attachments
+        private const string EmailFolderName = "Email"; 
 
         public static DocumentCompletion Instance
         {
@@ -46,6 +46,7 @@ namespace EmailCompleteApp.Services
             string numarComanda,
             string numarClient,
             string client,
+            string contact,
             string tarif,
             int monedaIndex,
             int tipIndex,
@@ -106,6 +107,7 @@ namespace EmailCompleteApp.Services
                     numarComanda,
                     numarClient,
                     client,
+                    contact,
                     tarif,
                     monedaIndex,
                     tipIndex,
@@ -166,6 +168,7 @@ namespace EmailCompleteApp.Services
             string numarComanda,
             string numarClient,
             string client,
+            string contact,
             string tarif,
             int monedaIndex,
             int tipIndex,
@@ -204,19 +207,27 @@ namespace EmailCompleteApp.Services
         {
             DateTime today = DateTime.Today;
 
+            int tipCLientIndex = tipIndex;
+            int tipTransportatorIndex = transportatorTipIndex;
+            string tvaClient = tipCLientIndex == 0 ? "+ " + GetOptionValue(tipCLientIndex, tipOptions) : GetOptionValue(tipCLientIndex, tipOptions);
+            string tvaTransportator = tipTransportatorIndex == 0 ? "+ " + GetOptionValue(tipTransportatorIndex, tipOptions) : GetOptionValue(tipTransportatorIndex, tipOptions);
+
+
+
             return Task.FromResult(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "DataAzi", today.ToString("dd.MM.yyyy") },
                 { "NumarComanda", numarComanda?.Trim() ?? string.Empty },
                 { "NumarClient", numarClient?.Trim() ?? string.Empty },
                 { "ClientNume", client?.Trim() ?? string.Empty },
+                { "ContactPers", contact?.Trim() ?? string.Empty },
                 { "ClientTarif", tarif?.Trim() ?? string.Empty },
                 { "ClientMoneda", GetOptionValue(monedaIndex, monedaOptions) },
-                { "ClientTip", GetOptionValue(tipIndex, tipOptions) },
+                { "ClientTip", tvaClient },
                 { "TransportatorNume", transportator?.Trim() ?? string.Empty },
                 { "TransportatorTarif", transportatorTarif?.Trim() ?? string.Empty },
                 { "TransportatorMoneda", GetOptionValue(transportatorMonedaIndex, monedaOptions) },
-                { "TransportatorTip", GetOptionValue(transportatorTipIndex, tipOptions) },
+                { "TransportatorTip", tvaTransportator },
                 { "DataIncarcare", dataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
                 { "DataDescarcare", dataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
                 { "Produs", produs?.Trim() ?? string.Empty },

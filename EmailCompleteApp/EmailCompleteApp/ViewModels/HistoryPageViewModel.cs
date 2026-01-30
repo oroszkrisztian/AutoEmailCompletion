@@ -86,9 +86,8 @@ namespace EmailCompleteApp.ViewModels
                     foreach (HistoryTransport item in response)
                     {
                         _allHistoryData.Add(item);
-                        await PrintLoadedData(item);
                     }
-                    FilterHistory(); // Apply initial filter
+                    FilterHistory(); 
                 }
             }
             catch (Exception ex)
@@ -208,19 +207,7 @@ namespace EmailCompleteApp.ViewModels
             return startPath;
         }
 
-        public static Task PrintLoadedData(HistoryTransport item)
-        {
-            var route = $"{item.LocatieIncarcareCity ?? "?"} - {item.LocatieDescarcareCity ?? "?"}";
-            var clientTarif = item.Tarif.HasValue ? $"{item.Tarif.Value}" : "N/A";
-            var transportatorTarif = item.TransportatorTarif.HasValue ? $"{item.TransportatorTarif.Value}" : "N/A";
-            
-            Debug.WriteLine($"History Item - ID: {item.Id}, Client: {item.Client}, Route: {route}, " +
-                          $"Date Loaded: {item.DataIncarcare?.ToString("dd/MM/yyyy") ?? "N/A"}, " +
-                          $"Date Unloaded: {item.DataDescarcare?.ToString("dd/MM/yyyy") ?? "N/A"}, " +
-                          $"Client Tarif: {clientTarif}, Transportator Tarif: {transportatorTarif}, " +
-                          $"Created At: {item.CreatedAt}, Order Number: {item.NumarComanda}");
-            return Task.CompletedTask;
-        }
+       
 
     }
 }

@@ -281,7 +281,6 @@
                           CanUserResizeRows="False"
                           SelectionMode="Single"
                           SelectionUnit="FullRow"
-                          SelectionChanged="LocationDataGrid_SelectionChanged"
                           GridLinesVisibility="None"
                           HeadersVisibility="Column"
                           Background="White"
@@ -291,6 +290,20 @@
                           RowStyle="{StaticResource DataGridRowStyle}"
                           CellStyle="{StaticResource DataGridCellStyle}"
                           ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Edit" Click="EditLocation_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="✏️" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Șterge" Click="DeleteLocation_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="🗑️" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*" MinWidth="150"/>
                         <DataGridTextColumn Header="Adresă" Binding="{Binding Address}" Width="*" MinWidth="200"/>
@@ -298,7 +311,6 @@
                         <DataGridTextColumn Header="Cod Poștal" Binding="{Binding PostalCode}" Width="*" MinWidth="100"/>
                         <DataGridTextColumn Header="Oraș" Binding="{Binding City}" Width="*" MinWidth="100"/>
                         <DataGridTextColumn Header="Județ" Binding="{Binding County}" Width="*" MinWidth="100"/>
-                        
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>

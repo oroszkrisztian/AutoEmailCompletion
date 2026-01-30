@@ -40,7 +40,7 @@
         <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Padding" Value="8,8"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridCell">
@@ -249,14 +249,14 @@
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Nr. Comandă" Binding="{Binding NumarComanda}" Width="Auto" MinWidth="100"/>
-                        <DataGridTextColumn Header="Client" Binding="{Binding ClientName}" Width="*" MinWidth="150"/>
-                        <DataGridTextColumn Header="Rută" Binding="{Binding Route}" Width="*" MinWidth="180"/>
-                        <DataGridTextColumn Header="Data Încărcare" Binding="{Binding DisplayDateLoaded}" Width="Auto" MinWidth="110"/>
-                        <DataGridTextColumn Header="Data Descărcare" Binding="{Binding DisplayDateUnloaded}" Width="Auto" MinWidth="120"/>
-                        <DataGridTextColumn Header="Tarif Client" Binding="{Binding ClientTarif}" Width="Auto" MinWidth="100"/>
-                        <DataGridTextColumn Header="Tarif Transportator" Binding="{Binding TransportatorTarifDisplay}" Width="Auto" MinWidth="140"/>
-                        <DataGridTextColumn Header="Data Creare" Binding="{Binding DisplayDateCreatedAt}" Width="Auto" MinWidth="110"/>
+                        <DataGridTextColumn Header="Nr. Comandă" Binding="{Binding NumarComanda}" Width="Auto"/>
+                        <DataGridTextColumn Header="Client" Binding="{Binding ClientName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Rută" Binding="{Binding Route}" Width="Auto"/>
+                        <DataGridTextColumn Header="Data Încărcare" Binding="{Binding DisplayDateLoaded}" Width="Auto"/>
+                        <DataGridTextColumn Header="Data Descărcare" Binding="{Binding DisplayDateUnloaded}" Width="Auto"/>
+                        <DataGridTextColumn Header="Tarif Client" Binding="{Binding ClientTarif}" Width="Auto"/>
+                        <DataGridTextColumn Header="Tarif Transportator" Binding="{Binding TransportatorTarifDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Data Creare" Binding="{Binding DisplayDateCreatedAt}" Width="*"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>

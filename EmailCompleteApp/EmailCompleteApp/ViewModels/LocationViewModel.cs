@@ -197,6 +197,39 @@ public partial class LocationViewModel : ObservableObject
         await Submit();
     }
 
+    [RelayCommand]
+    private async Task DeleteLocation(Location location) 
+    {
+        if (location == null) return;
+        var result = MessageBox.Show(
+            $"Sunteți sigur că doriți să ștergeți locația '{location.Name}' (ID: {location.Id})?",
+            "Confirmare ștergere",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                await _locationRepo.DeleteAsync(location.Id);
+                await _searchService.RefreshDataAsync();
+                await LoadAllLocations();
+                MessageBox.Show(
+                    $"✅ Locația '{location.Name}' a fost ștearsă cu succes!",
+                    "Succes",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"❌ Eroare la ștergerea locației:\n\n{ex.Message}",
+                    "Eroare de bază de date",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+    }
+
     private async Task<bool> LoadAllLocations()
     {
         var locations = await _locationRepo.LoadAllAsync();

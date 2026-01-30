@@ -19,21 +19,35 @@ namespace EmailCompleteApp.Pages
             DataContext = new ClientsViewModel();
         }
 
-        private void ClientDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void EditClient_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is DataGrid grid && grid.SelectedItem is Client client)
+            if (ClientDataGrid.SelectedItem is Client client)
             {
                 ViewModel?.EditClient(client);
-                grid.SelectedItem = null; // Clear selection after opening edit
             }
         }
 
-        private void TransportatorDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void DeleteClient_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is DataGrid grid && grid.SelectedItem is Transportator transportator)
+            if (ClientDataGrid.SelectedItem is Client client)
+            {
+                _ = ViewModel?.DeleteClientCommand.ExecuteAsync(client);
+            }
+        }
+
+        private void EditTransportator_Click(object sender, RoutedEventArgs e)
+        {
+            if (TransportatorDataGrid.SelectedItem is Transportator transportator)
             {
                 ViewModel?.EditTransportator(transportator);
-                grid.SelectedItem = null; // Clear selection after opening edit
+            }
+        }
+
+        private void DeleteTransportator_Click(object sender, RoutedEventArgs e)
+        {
+            if (TransportatorDataGrid.SelectedItem is Transportator transportator)
+            {
+                _ = ViewModel?.DeleteTransportatorCommand.ExecuteAsync(transportator);
             }
         }
     }

@@ -67,11 +67,12 @@ namespace EmailCompleteApp.Pages
                     {
                         if (combo.Template.FindName("PART_EditableTextBox", combo) is TextBox textBox)
                         {
-                            // Open dropdown ONLY when user types (text not empty); close when cleared
+                            // Open dropdown ONLY when there are matching results
                             textBox.TextChanged += (s, args) =>
                             {
                                 var hasText = !string.IsNullOrWhiteSpace(textBox.Text);
-                                combo.IsDropDownOpen = hasText;
+                                var hasItems = combo.Items.Count > 0;
+                                combo.IsDropDownOpen = hasText && hasItems;
                             };
                         }
                     }
@@ -139,6 +140,26 @@ namespace EmailCompleteApp.Pages
                         _viewModel.SetUpdatingFromSelection(true);
                         _viewModel.Client = client.ToString();
                         combo.Text = _viewModel.Client;
+                        _viewModel.SetUpdatingFromSelection(false);
+                    }
+                }
+                else if(combo.SelectedItem is Product product)
+                {
+                    if (combo.Name == "ProdusComboBox")
+                    {
+                        _viewModel.SetUpdatingFromSelection(true);
+                        _viewModel.Produs = product.ToString();
+                        combo.Text = _viewModel.Produs;
+                        _viewModel.SetUpdatingFromSelection(false);
+                    }
+                }
+                else if(combo.SelectedItem is Contact contact)
+                {
+                    if (combo.Name == "ContactComboBox")
+                    {
+                        _viewModel.SetUpdatingFromSelection(true);
+                        _viewModel.Contact = contact.ToString();
+                        combo.Text = _viewModel.Contact;
                         _viewModel.SetUpdatingFromSelection(false);
                     }
                 }

@@ -24,6 +24,8 @@ namespace EmailCompleteApp.Services
         private List<Client> _allClients = new();
         private List<Transportator> _allTransportators = new();
         private List<Location> _allLocations = new();
+        private List<Product> _allProducts = new();
+        private List<Contact> _allContacts = new();
         private bool _dataLoaded = false;
 
         // Events for UI progress updates
@@ -34,6 +36,8 @@ namespace EmailCompleteApp.Services
         private readonly ClientRepository _clientRepo = ClientRepository.Instance;
         private readonly TransportatorRepository _transportatorRepo = TransportatorRepository.Instance;
         private readonly LocationRepository _locationRepo = LocationRepository.Instance;
+        private readonly ProductRrepository _productRepo = ProductRrepository.Instance;
+        private readonly ContactRepository _contactRepo = ContactRepository.Instance;
 
         public static SearchService Instance
         {
@@ -152,6 +156,15 @@ namespace EmailCompleteApp.Services
                     DetailChanged?.Invoke("Fetching locations from Supabase");
                     _allLocations = await _locationRepo.LoadAllAsync();
 
+                    ProgressChanged?.Invoke("Loading products...");
+                    DetailChanged?.Invoke("Fetching products from Supabase");
+                   _allProducts = await _productRepo.LoadAllAsync();
+
+                    ProgressChanged?.Invoke("Loading contacts...");
+                    DetailChanged?.Invoke("Fetching contacts from Supabase");
+                    _allContacts = await _contactRepo.LoadAllAsync();
+
+
                     _dataLoaded = true;
 
                     System.Diagnostics.Debug.WriteLine(
@@ -180,9 +193,7 @@ namespace EmailCompleteApp.Services
             });
         }
 
-        /// <summary>
-        /// 🔥 Refresh all data from Supabase (3 queries via repositories)
-        /// </summary>
+        
         public async Task RefreshDataAsync()
         {
             try
@@ -191,10 +202,11 @@ namespace EmailCompleteApp.Services
 
                 ProgressChanged?.Invoke("Refreshing data...");
 
-                // 🔥 Reload via repositories (3 queries)
                 _allClients = await _clientRepo.LoadAllAsync();
                 _allTransportators = await _transportatorRepo.LoadAllAsync();
                 _allLocations = await _locationRepo.LoadAllAsync();
+                _allProducts = await _productRepo.LoadAllAsync();
+                _allContacts = await _contactRepo.LoadAllAsync();
 
                 System.Diagnostics.Debug.WriteLine(
                     $"✅ Refreshed: {_allClients.Count} clients, " +
@@ -252,16 +264,24 @@ namespace EmailCompleteApp.Services
                 .ToList();
         }
 
-        public async Task<List<Client>> ReturnAllClients()
+        public async Task<List<Product>> SearchProductsAsync(string searchText)
         {
             await EnsureDataLoadedAsync();
-            return _allClients.ToList();
+            if (string.IsNullOrWhiteSpace(searchText))
+                return _allProducts.ToList();
+            return _allProducts
+                .Where(p => p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
-        public async Task<List<Transportator>> ReturnAllTransportators()
+        public async Task<List<Contact>> SearchContactsAsync(string searchText)
         {
             await EnsureDataLoadedAsync();
-            return _allTransportators.ToList();
+            if (string.IsNullOrWhiteSpace(searchText))
+                return _allContacts.ToList();
+            return _allContacts
+                .Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))                  
+                .ToList();
         }
 
 

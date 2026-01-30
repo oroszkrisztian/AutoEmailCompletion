@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Windows;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EmailCompleteApp.Models;
 using EmailCompleteApp.Services;
 using EmailCompleteApp.Services.Repositories;
+using Microsoft.EntityFrameworkCore.Metadata;
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace EmailCompleteApp.ViewModels;
 
@@ -18,6 +19,8 @@ public partial class ComandaTransportViewModel : ObservableObject
     private readonly SearchService _searchService;
     private readonly DocumentCompletion _documentCompletion;
     private readonly HistoryRepository _historyRepository;
+    private readonly ContactRepository _contactRepository ;
+    private readonly ProductRrepository _productRepository;
 
     // Search debounce settings
     private const int SearchDebounceDelayMs = 300;
@@ -28,6 +31,8 @@ public partial class ComandaTransportViewModel : ObservableObject
     private CancellationTokenSource? _transportatorSearchCts;
     private CancellationTokenSource? _incarcareSearchCts;
     private CancellationTokenSource? _descarcareSearchCts;
+    private CancellationTokenSource? _productSearchCts;
+    private CancellationTokenSource? _contactSearchCts;
 
     // Flag to prevent search when updating from selection
     private bool _isUpdatingFromSelection = false;
@@ -56,6 +61,7 @@ public partial class ComandaTransportViewModel : ObservableObject
     [ObservableProperty] private DateTime? _dataIncarcare = DateTime.UtcNow.Date;
     [ObservableProperty] private DateTime? _dataDescarcare = DateTime.UtcNow.Date.AddDays(1);
     [ObservableProperty] private string _produs = string.Empty;
+    [ObservableProperty] private string _contact = string.Empty;
     [ObservableProperty] private string _cantitate = string.Empty;
     [ObservableProperty] private int _tipAdrIndex = 0;
     [ObservableProperty] private string _clasa = string.Empty;
@@ -115,6 +121,8 @@ public partial class ComandaTransportViewModel : ObservableObject
     public ObservableCollection<Transportator> TransportatorSuggestions { get; } = new();
     public ObservableCollection<Location> IncarcareSuggestions { get; } = new();
     public ObservableCollection<Location> DescarcareSuggestions { get; } = new();
+    public ObservableCollection<Product> ProductSuggestions { get; } = new();
+    public ObservableCollection<Contact> ContactSuggestions { get; } = new();
 
     #endregion
 
@@ -125,6 +133,8 @@ public partial class ComandaTransportViewModel : ObservableObject
         _searchService = SearchService.Instance;
         _documentCompletion = DocumentCompletion.Instance;
         _historyRepository = HistoryRepository.Instance;
+        _contactRepository = ContactRepository.Instance;
+        _productRepository = ProductRrepository.Instance;
         IsFormVisible = false;
         IsEditMode = false;
         SubmitButtonText = "Send Email";
@@ -137,6 +147,8 @@ public partial class ComandaTransportViewModel : ObservableObject
         _searchService = SearchService.Instance;
         _documentCompletion = DocumentCompletion.Instance;
         _historyRepository = HistoryRepository.Instance;
+        _contactRepository = ContactRepository.Instance;
+        _productRepository = ProductRrepository.Instance;
 
         _editingHistoryItem = historyItem;
         IsEditMode = true;
@@ -153,7 +165,7 @@ public partial class ComandaTransportViewModel : ObservableObject
 
     private async Task LoadHistoryDataForEdit(HistoryTransport historyItem)
     {
-        await Task.Delay(100); // Small delay to ensure UI is ready
+        await Task.Delay(100); 
 
         // Load all data from history item
         NumarComanda = historyItem.NumarComanda ?? string.Empty;
@@ -233,7 +245,10 @@ public partial class ComandaTransportViewModel : ObservableObject
                 LoadInitialClientsAsync(),
                 LoadInitialTransportatorsAsync(),
                 LoadInitialLocationsAsync(IncarcareSuggestions),
-                LoadInitialLocationsAsync(DescarcareSuggestions)
+                LoadInitialLocationsAsync(DescarcareSuggestions),
+                LoadInitialProductsAsync(),
+                LoadInitialContactsAsync()
+
             );
 
             Debug.WriteLine("✅ Initial suggestions loaded from Supabase cache");
@@ -415,6 +430,8 @@ public partial class ComandaTransportViewModel : ObservableObject
         UpdateOrderCommand.NotifyCanExecuteChanged();
     }
 
+
+
     #endregion
 
     #region Debounced Search
@@ -452,6 +469,8 @@ public partial class ComandaTransportViewModel : ObservableObject
             Debug.WriteLine($"❌ Location search error: {ex.Message}");
         }
     }
+
+    
 
     #endregion
 
@@ -511,6 +530,8 @@ public partial class ComandaTransportViewModel : ObservableObject
         }
     }
 
+    
+    
     #endregion
 
     #region Load Initial Data
@@ -554,6 +575,32 @@ public partial class ComandaTransportViewModel : ObservableObject
         }
     }
 
+    private async Task LoadInitialProductsAsync()
+    {
+        try
+        {
+            var results = await _searchService.SearchProductsAsync("");
+            UpdateCollection(ProductSuggestions, results.ToList());
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"❌ Load products error: {ex.Message}");
+        }
+    }
+
+    private async Task LoadInitialContactsAsync()
+    {
+        try
+        {
+            var results = await _searchService.SearchContactsAsync("");
+            UpdateCollection(ContactSuggestions, results.ToList());
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"❌ Load contacts error: {ex.Message}");
+        }
+    }
+
     #endregion
 
     #region Collection Helper
@@ -593,7 +640,6 @@ public partial class ComandaTransportViewModel : ObservableObject
             // Parse tarif values as decimals
             decimal? tarifValue = decimal.TryParse(Tarif, out var t) ? t : (decimal?)null;
             decimal? transportatorTarifDecimal = decimal.TryParse(TransportatorTarif, out var tt) ? tt : (decimal?)null;
-            decimal? cantitateValue = decimal.TryParse(Cantitate, out var c) ? c : (decimal?)null;
             int? termenPlataValue = int.TryParse(TermenPlata, out var tp) ? tp : (int?)null;
 
             // Update the existing history record
@@ -612,7 +658,7 @@ public partial class ComandaTransportViewModel : ObservableObject
                 _editingHistoryItem.DataIncarcare = EnsureUtcDate(DataIncarcare);
                 _editingHistoryItem.DataDescarcare = EnsureUtcDate(DataDescarcare);
                 _editingHistoryItem.Produs = Produs;
-                _editingHistoryItem.Cantitate = cantitateValue;
+                _editingHistoryItem.Cantitate = Cantitate?.Trim() ?? string.Empty;
                 _editingHistoryItem.TipAdrIndex = TipAdrIndex;
                 _editingHistoryItem.Clasa = Clasa;
                 _editingHistoryItem.Un = Un;
@@ -696,6 +742,28 @@ public partial class ComandaTransportViewModel : ObservableObject
             //recheck from api last number again
             await ReloadLastOrder();
 
+            if(!string.IsNullOrEmpty(Contact))
+            {
+                Contact contactToInsert = new Contact
+                {
+                    Name = Contact
+                };
+                await _contactRepository.InsertAsync(contactToInsert);
+
+            }
+            
+            if(!string.IsNullOrEmpty(Produs) )
+            {
+                
+                Product productToInsert = new Product
+                {
+                    Name = Produs
+                };
+                await _productRepository.InsertAsync(productToInsert);
+            }
+            
+            
+
             // Parse tarif values as decimals
             decimal? tarifValue = decimal.TryParse(Tarif, out var t) ? t : (decimal?)null;
             decimal? transportatorTarifDecimal = decimal.TryParse(TransportatorTarif, out var tt) ? tt : (decimal?)null;
@@ -708,6 +776,9 @@ public partial class ComandaTransportViewModel : ObservableObject
                 NumarComanda = NumarComanda,
                 NumarClient = NumarClient,
                 Client = Client,
+                Contact = Contact,
+
+
 
                 // Tarif client
                 Tarif = tarifValue,
@@ -726,7 +797,7 @@ public partial class ComandaTransportViewModel : ObservableObject
 
                 // Marfa
                 Produs = Produs,
-                Cantitate = cantitateValue,
+                Cantitate = Cantitate,
                 TipAdrIndex = TipAdrIndex,
                 Clasa = Clasa,
                 Un = Un,
@@ -759,11 +830,14 @@ public partial class ComandaTransportViewModel : ObservableObject
                 throw new Exception("Failed to save history record before sending email.");
             }
 
+           
+
             // Generate comanda.docx (saved to disk permanently - NOT attached to email)
             var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
                 NumarComanda,
                 NumarClient,
                 Client,
+                Contact,
                 Tarif,
                 MonedaIndex,
                 TipIndex,
@@ -808,6 +882,10 @@ public partial class ComandaTransportViewModel : ObservableObject
 
             Debug.WriteLine($"✅ Saved comanda.docx to: {comandaPath}");
 
+            int tipClientIndex = TipIndex;
+            int tipTransportatorIndex = TransportatorTipIndex;
+            string tvaClient = tipClientIndex == 0 ? "+ " + tipOptions.ElementAtOrDefault(tipClientIndex) : tipOptions.ElementAtOrDefault(tipClientIndex) ?? string.Empty;
+            string tvaTransportator = tipTransportatorIndex == 0 ? "+ " + tipOptions.ElementAtOrDefault(tipTransportatorIndex) : tipOptions.ElementAtOrDefault(tipTransportatorIndex) ?? string.Empty;
             // Build replacements for page2.doc
             var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -815,13 +893,14 @@ public partial class ComandaTransportViewModel : ObservableObject
                 { "NumarComanda", NumarComanda?.Trim() ?? string.Empty },
                 { "NumarClient", NumarClient?.Trim() ?? string.Empty },
                 { "ClientNume", Client?.Trim() ?? string.Empty },
+                { "ContactPers", Contact?.Trim() ?? string.Empty },
                 { "ClientTarif", Tarif?.Trim() ?? string.Empty },
                 { "ClientMoneda", monedaOptions.ElementAtOrDefault(MonedaIndex) ?? string.Empty },
-                { "ClientTip", tipOptions.ElementAtOrDefault(TipIndex) ?? string.Empty },
+                { "ClientTip", tvaClient },
                 { "TransportatorNume", Transportator?.Trim() ?? string.Empty },
                 { "TransportatorTarif", TransportatorTarif?.Trim() ?? string.Empty },
                 { "TransportatorMoneda", monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex) ?? string.Empty },
-                { "TransportatorTip", tipOptions.ElementAtOrDefault(TransportatorTipIndex) ?? string.Empty },
+                { "TransportatorTip", tvaTransportator },
                 { "DataIncarcare", DataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
                 { "DataDescarcare", DataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
                 { "Produs", Produs?.Trim() ?? string.Empty },
@@ -962,6 +1041,7 @@ public partial class ComandaTransportViewModel : ObservableObject
         NumarComanda = string.Empty;
         NumarClient = string.Empty;
         Client = string.Empty;
+        Contact = string.Empty;
         Tarif = string.Empty;
         MonedaIndex = 0;
         TipIndex = 0;

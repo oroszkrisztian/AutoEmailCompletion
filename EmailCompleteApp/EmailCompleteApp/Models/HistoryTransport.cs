@@ -27,6 +27,9 @@ namespace EmailCompleteApp.Models
         [Column("client")]
         public string? Client { get; set; }
 
+        [Column("contact")]
+        public string? Contact { get; set; }
+
         // Tarif client
         [Column("tarif")]
         public decimal? Tarif { get; set; }
@@ -62,7 +65,7 @@ namespace EmailCompleteApp.Models
         public string? Produs { get; set; }
 
         [Column("cantitate")]
-        public decimal? Cantitate { get; set; }
+        public string? Cantitate { get; set; }
 
         [Column("tip_adr_index")]
         public int? TipAdrIndex { get; set; }
@@ -141,10 +144,21 @@ namespace EmailCompleteApp.Models
             {
                 if (!Tarif.HasValue) return string.Empty;
                 var monedaOptions = new[] { "EUR", "EUR/MT", "RON" };
+                var tipOptions = new[] { "TVA", "ALL IN" };
                 var moneda = MonedaIndex.HasValue && MonedaIndex.Value >= 0 && MonedaIndex.Value < monedaOptions.Length 
                     ? monedaOptions[MonedaIndex.Value] 
                     : string.Empty;
-                return $"{Tarif.Value} {moneda}".Trim();
+                var tip = TipIndex.HasValue && TipIndex.Value >= 0 && TipIndex.Value < tipOptions.Length 
+                    ? tipOptions[TipIndex.Value] 
+                    : string.Empty;
+                if (tip == "TVA")
+                {
+                    return $"{Tarif.Value} {moneda} + {tip}".Trim();
+                }
+                else
+                {
+                    return $"{Tarif.Value} {moneda} {tip}".Trim();
+                }
             }
         }
         public string TransportatorTarifDisplay
@@ -153,10 +167,21 @@ namespace EmailCompleteApp.Models
             {
                 if (!TransportatorTarif.HasValue) return string.Empty;
                 var monedaOptions = new[] { "EUR", "EUR/MT", "RON" };
+                var tipOptions = new[] { "TVA", "ALL IN" };
                 var moneda = TransportatorMonedaIndex.HasValue && TransportatorMonedaIndex.Value >= 0 && TransportatorMonedaIndex.Value < monedaOptions.Length 
                     ? monedaOptions[TransportatorMonedaIndex.Value] 
                     : string.Empty;
-                return $"{TransportatorTarif.Value} {moneda}".Trim();
+                var tip = TransportatorTipIndex.HasValue && TransportatorTipIndex.Value >= 0 && TransportatorTipIndex.Value < tipOptions.Length 
+                    ? tipOptions[TransportatorTipIndex.Value] 
+                    : string.Empty;
+                if (tip == "TVA")
+                {
+                    return $"{TransportatorTarif.Value} {moneda} + {tip}".Trim();
+                }
+                else
+                {
+                    return $"{TransportatorTarif.Value} {moneda} {tip}".Trim();
+                }
             }
         }
 

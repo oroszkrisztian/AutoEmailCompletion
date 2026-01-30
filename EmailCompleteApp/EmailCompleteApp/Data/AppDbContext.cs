@@ -13,6 +13,8 @@ namespace EmailCompleteApp.Data
         public DbSet<Client> Clients { get; set; }
         public DbSet<Transportator> Transportators { get; set; }
         public DbSet<Location> Locations { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         public DbSet<HistoryTransport> HistoryTransports { get; set; }
 
@@ -82,7 +84,8 @@ namespace EmailCompleteApp.Data
                 entity.Property(e => e.NumarComanda).HasColumnName("numar_comanda").IsRequired();
                 entity.Property(e => e.NumarClient).HasColumnName("numar_client");
                 entity.Property(e => e.Client).HasColumnName("client");
-                
+                entity.Property(e => e.Contact).HasColumnName("contact");
+
                 // Tarif client
                 entity.Property(e => e.Tarif).HasColumnName("tarif").HasPrecision(12, 2);
                 entity.Property(e => e.MonedaIndex).HasColumnName("moneda_index");
@@ -126,6 +129,26 @@ namespace EmailCompleteApp.Data
                 entity.Property(e => e.TermenPlata).HasColumnName("termen_plata");
                 entity.Property(e => e.CommentUser).HasColumnName("comment_user");
                 
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // Configure Contact entity
+            modelBuilder.Entity<Contact>(entity =>
+            {                 
+                entity.ToTable("contacts");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").UseIdentityColumn();
+                entity.Property(e => e.Name).HasColumnName("contact_name").IsRequired().HasMaxLength(255);
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // Configure Product entity
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.ToTable("products");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").UseIdentityColumn();
+                entity.Property(e => e.Name).HasColumnName("product_name").IsRequired().HasMaxLength(255);
                 entity.Property(e => e.CreatedAt).HasColumnName("created_at").IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
         }

@@ -386,7 +386,16 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Produs:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding Produs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
+                        <ComboBox x:Name="ProdusComboBox"
+                                  Text="{Binding Produs, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                  ItemsSource="{Binding ProductSuggestions}"
+                                  Style="{StaticResource AutoCompleteComboBoxStyle}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  PreviewKeyDown="ComboBox_PreviewKeyDown"
+                                  SelectionChanged="ComboBox_SelectionChanged"
+                                  GotFocus="ComboBox_GotFocus"
+                                  Loaded="ComboBox_Loaded"
+                                  Margin="0,0,0,8" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Cantitate:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
@@ -408,6 +417,21 @@
                         <TextBox Text="{Binding Un, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                 </Grid>
+
+                <!-- Contact Row -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Contact:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                    <ComboBox x:Name="ContactComboBox"
+                              Text="{Binding Contact, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                              ItemsSource="{Binding ContactSuggestions}"
+                              Style="{StaticResource AutoCompleteComboBoxStyle}"
+                              DropDownOpened="ComboBox_DropDownOpened"
+                              PreviewKeyDown="ComboBox_PreviewKeyDown"
+                              SelectionChanged="ComboBox_SelectionChanged"
+                              GotFocus="ComboBox_GotFocus"
+                              Loaded="ComboBox_Loaded"
+                              Margin="0,0,0,8" />
+                </StackPanel>
 
                 <!-- Numar Inmatriculare -->
                 <StackPanel Margin="0,0,0,16">

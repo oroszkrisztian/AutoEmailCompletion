@@ -130,6 +130,7 @@ public partial class ClientsViewModel : ObservableObject
     /// <summary>
     /// Opens the form with pre-filled data for editing a client
     /// </summary>
+    [RelayCommand]
     public void EditClient(Client client)
     {
         if (client == null) return;
@@ -152,6 +153,7 @@ public partial class ClientsViewModel : ObservableObject
     /// <summary>
     /// Opens the form with pre-filled data for editing a transportator
     /// </summary>
+    [RelayCommand]
     public void EditTransportator(Transportator transportator)
     {
         if (transportator == null) return;
@@ -360,6 +362,72 @@ public partial class ClientsViewModel : ObservableObject
         {
             MessageBox.Show("Încărcarea transportatorilor a eșuat.", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteClient(Client client) 
+    {
+        if (client == null) return;
+        var result = MessageBox.Show(
+            $"Sunteți sigur că doriți să ștergeți clientul '{client.Name}' (ID: {client.Id})?",
+            "Confirmare ștergere",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                await _clientRepo.DeleteAsync(client.Id);
+                await _searchService.RefreshDataAsync();
+                await LoadAllClients();
+                MessageBox.Show(
+                    $"✅ Clientul '{client.Name}' a fost șters cu succes!",
+                    "Succes",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"❌ Eroare la ștergerea clientului:\n\n{ex.Message}",
+                    "Eroare de bază de date",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteTransportator(Transportator transportator) 
+    {
+        if (transportator == null) return;
+        var result = MessageBox.Show(
+            $"Sunteți sigur că doriți să ștergeți transportatorul '{transportator.Name}' (ID: {transportator.Id})?",
+            "Confirmare ștergere",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                await _transportatorRepo.DeleteAsync(transportator.Id);
+                await _searchService.RefreshDataAsync();
+                await LoadAllTransportators();
+                MessageBox.Show(
+                    $"✅ Transportatorul '{transportator.Name}' a fost șters cu succes!",
+                    "Succes",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"❌ Eroare la ștergerea transportatorului:\n\n{ex.Message}",
+                    "Eroare de bază de date",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
     }
 
