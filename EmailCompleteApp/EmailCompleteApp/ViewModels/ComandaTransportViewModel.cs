@@ -830,9 +830,28 @@ public partial class ComandaTransportViewModel : ObservableObject
                 throw new Exception("Failed to save history record before sending email.");
             }
 
-           
+
 
             // Generate comanda.docx (saved to disk permanently - NOT attached to email)
+            string countyDescarcare = string.Empty;
+            string countyIncarcare = string.Empty;
+            if (!string.IsNullOrWhiteSpace(LocatieDescarcareCounty))
+            {
+                countyDescarcare = ", Jud. " + LocatieDescarcareCounty;
+            }else
+            {
+                countyDescarcare = LocatieDescarcareCounty;
+            }
+            if (!string.IsNullOrWhiteSpace(LocatieIncarcareCounty))
+            {
+                countyIncarcare = ", Jud. " + LocatieIncarcareCounty;
+            }
+            else
+            {
+                countyIncarcare = LocatieIncarcareCounty;
+            }
+
+
             var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
                 NumarComanda,
                 NumarClient,
@@ -859,14 +878,14 @@ public partial class ComandaTransportViewModel : ObservableObject
                 LocatieIncarcareCity,
                 LocatieIncarcareCountryCode,
                 LocatieIncarcarePostalCode,
-                LocatieIncarcareCounty,
+                countyIncarcare,
                 // Delivery location components
                 LocatieDescarcareAddress,
                 LocatieDescarcareName,
                 LocatieDescarcareCity,
                 LocatieDescarcareCountryCode,
                 LocatieDescarcarePostalCode,
-                LocatieDescarcareCounty,
+                countyDescarcare,
                 TermenPlata,
                 CommentUser,
                 monedaOptions,
@@ -886,6 +905,8 @@ public partial class ComandaTransportViewModel : ObservableObject
             int tipTransportatorIndex = TransportatorTipIndex;
             string tvaClient = tipClientIndex == 0 ? "+ " + tipOptions.ElementAtOrDefault(tipClientIndex) : tipOptions.ElementAtOrDefault(tipClientIndex) ?? string.Empty;
             string tvaTransportator = tipTransportatorIndex == 0 ? "+ " + tipOptions.ElementAtOrDefault(tipTransportatorIndex) : tipOptions.ElementAtOrDefault(tipTransportatorIndex) ?? string.Empty;
+            string cantitateKg = Cantitate + " kg";
+
             // Build replacements for page2.doc
             var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -901,10 +922,10 @@ public partial class ComandaTransportViewModel : ObservableObject
                 { "TransportatorTarif", TransportatorTarif?.Trim() ?? string.Empty },
                 { "TransportatorMoneda", monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex) ?? string.Empty },
                 { "TransportatorTip", tvaTransportator },
-                { "DataIncarcare", DataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
-                { "DataDescarcare", DataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "DataIncarcare", DataIncarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
+                { "DataDescarcare", DataDescarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
                 { "Produs", Produs?.Trim() ?? string.Empty },
-                { "CantitateComanda", Cantitate?.Trim() ?? string.Empty },
+                { "CantitateComanda", cantitateKg?.Trim() ?? string.Empty },
                 { "TipADR", tipAdrOptions.ElementAtOrDefault(TipAdrIndex) ?? string.Empty },
                 { "Clasa", Clasa?.Trim() ?? string.Empty },
                 { "UserUnInput", Un?.Trim() ?? string.Empty },
@@ -914,13 +935,13 @@ public partial class ComandaTransportViewModel : ObservableObject
                 { "LocatieIncarcareCity", LocatieIncarcareCity?.Trim() ?? string.Empty },
                 { "LocatieIncarcareCountryCode", LocatieIncarcareCountryCode?.Trim() ?? string.Empty },
                 { "LocatieIncarcarePostalCode", LocatieIncarcarePostalCode?.Trim() ?? string.Empty },
-                { "LocatieIncarcareCounty", LocatieIncarcareCounty?.Trim() ?? string.Empty },
+                { "LocatieIncarcareCounty", countyIncarcare?.Trim() ?? string.Empty },
                 { "LocatieDescarcareAddress", LocatieDescarcareAddress?.Trim() ?? string.Empty },
                 { "LocatieDescarcareName", LocatieDescarcareName?.Trim() ?? string.Empty },
                 { "LocatieDescarcareCity", LocatieDescarcareCity?.Trim() ?? string.Empty },
                 { "LocatieDescarcareCountryCode", LocatieDescarcareCountryCode?.Trim() ?? string.Empty },
                 { "LocatieDescarcarePostalCode", LocatieDescarcarePostalCode?.Trim() ?? string.Empty },
-                { "LocatieDescarcareCounty", LocatieDescarcareCounty?.Trim() ?? string.Empty },
+                { "LocatieDescarcareCounty", countyDescarcare?.Trim() ?? string.Empty },
                 { "TermenPlata", TermenPlata?.Trim() ?? string.Empty },
                 { "Comments", CommentUser?.Trim() ?? string.Empty }
             };
@@ -934,7 +955,7 @@ public partial class ComandaTransportViewModel : ObservableObject
             if (System.IO.File.Exists(page2TemplatePath))
             {
                 // Generate page2.doc as temp file
-                var page2Path = await _documentCompletion.GenerateAndSendPage2DocAsync(page2TemplatePath, replacements, NumarComanda);
+                var page2Path = await _documentCompletion.GenerateAndSendPage2DocAsync(page2TemplatePath, replacements, NumarComanda, LocatieIncarcareCity, LocatieDescarcareCity);
                 if (page2Path != null)
                 {
                     // Open Thunderbird with ONLY page2.doc attached, then cleanup
@@ -955,23 +976,13 @@ public partial class ComandaTransportViewModel : ObservableObject
 
             Debug.WriteLine("🔄 Refreshing data from Supabase...");
             await _searchService.RefreshDataAsync();
-
+            ResetinputFields();
             await ReloadAllSuggestionsAsync();
 
-            ResetinputFields();
+            
             ToggleVisibility();
             await InitLastOrder();
 
-
-            Debug.WriteLine("✅ Email sent and data refreshed");
-
-            MessageBox.Show(
-                "✅ Email sent successfully!\n\n" +
-                "Data refreshed from Supabase.\n" +
-                "All users will see latest data.",
-                "Success",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
@@ -1038,6 +1049,7 @@ public partial class ComandaTransportViewModel : ObservableObject
 
     private void ResetinputFields()
     {
+
         NumarComanda = string.Empty;
         NumarClient = string.Empty;
         Client = string.Empty;
@@ -1066,7 +1078,9 @@ public partial class ComandaTransportViewModel : ObservableObject
         LocatieIncarcareCity = string.Empty;
         LocatieDescarcareAddress = string.Empty;
         LocatieDescarcareName = string.Empty;
-        LocatieDescarcareCity = string.Empty;
+        LocatieDescarcareCity = string.Empty;   
+        IncarcareSuggestions.Clear();
+        DescarcareSuggestions.Clear();
     }
 
     #endregion

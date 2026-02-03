@@ -398,7 +398,7 @@
                                   Margin="0,0,0,8" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                        <TextBlock Text="Cantitate:" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Cantitate (kg):" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextColor}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding Cantitate, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">

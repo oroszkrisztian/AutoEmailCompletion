@@ -90,6 +90,7 @@ namespace EmailCompleteApp.Services
                 string projectDir = FindProjectDirectory(projectRoot);
                 string docDir = Path.Combine(projectDir, DocumentFolderName);
                 string templatePath = Path.Combine(docDir, TemplateFileName);
+                string cantitateKg = cantitate + " kg";
 
                 if (!File.Exists(templatePath))
                 {
@@ -101,7 +102,7 @@ namespace EmailCompleteApp.Services
                 Directory.CreateDirectory(generatedDir);
 
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss");
-                string outputPath = Path.Combine(generatedDir, $"Comanda {numarComanda} {locatieIncarcareCity} - {locatieDescarcareCity}.docx");
+                string outputPath = Path.Combine(generatedDir, $"{numarComanda} {locatieIncarcareCity} - {locatieDescarcareCity}.docx");
 
                 var replacements = await BuildReplacementDictionary(
                     numarComanda,
@@ -118,7 +119,7 @@ namespace EmailCompleteApp.Services
                     dataIncarcare,
                     dataDescarcare,
                     produs,
-                    cantitate,
+                    cantitateKg,
                     tipAdrIndex,
                     clasa,
                     un,
@@ -148,7 +149,6 @@ namespace EmailCompleteApp.Services
 
                 if (success)
                 {
-                    ShowSuccess($"DOCX generated.\n\nDOCX: {outputPath}", "Ready to Send");
                     return outputPath;
                 }
                 
@@ -213,7 +213,6 @@ namespace EmailCompleteApp.Services
             string tvaTransportator = tipTransportatorIndex == 0 ? "+ " + GetOptionValue(tipTransportatorIndex, tipOptions) : GetOptionValue(tipTransportatorIndex, tipOptions);
 
 
-
             return Task.FromResult(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "DataAzi", today.ToString("dd.MM.yyyy") },
@@ -228,8 +227,8 @@ namespace EmailCompleteApp.Services
                 { "TransportatorTarif", transportatorTarif?.Trim() ?? string.Empty },
                 { "TransportatorMoneda", GetOptionValue(transportatorMonedaIndex, monedaOptions) },
                 { "TransportatorTip", tvaTransportator },
-                { "DataIncarcare", dataIncarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
-                { "DataDescarcare", dataDescarcare?.ToString("dd/MM/yyyy") ?? string.Empty },
+                { "DataIncarcare", dataIncarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
+                { "DataDescarcare", dataDescarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
                 { "Produs", produs?.Trim() ?? string.Empty },
                 { "CantitateComanda", cantitate?.Trim() ?? string.Empty },
                 { "TipADR", GetOptionValue(tipAdrIndex, tipAdrOptions) },
@@ -442,10 +441,6 @@ namespace EmailCompleteApp.Services
         /// <summary>
         /// Opens Thunderbird email client with the specified document attached to a new email
         /// </summary>
-        private static void OpenThunderbirdWithAttachment(string attachmentPath)
-        {
-            OpenThunderbirdWithAttachments(attachmentPath);
-        }
 
         #endregion
 
@@ -490,7 +485,9 @@ namespace EmailCompleteApp.Services
         public async Task<string?> GenerateAndSendPage2DocAsync(
             string templatePath,
             Dictionary<string, string> replacements,
-            string numarComanda
+            string numarComanda,
+            string locatieIncarcareCity,
+            string locatieDescarcareCity
         )
         {
             try
@@ -512,7 +509,7 @@ namespace EmailCompleteApp.Services
                 Directory.CreateDirectory(emailDir);
 
                 // Create file with proper naming: Comanda {number}.doc in Email folder
-                string outputFileName = $"Comanda {numarComanda}.doc";
+                string outputFileName = $"{numarComanda} {locatieIncarcareCity} - {locatieDescarcareCity}.doc";
                 string outputPath = Path.Combine(emailDir, outputFileName);
 
                 Debug.WriteLine($"📝 Generating page2.doc at: {outputPath}");
