@@ -1519,7 +1519,7 @@
           }
         }
       },
-      "NPOI/2.7.4": {
+      "NPOI/2.7.5": {
         "type": "package",
         "dependencies": {
           "BouncyCastle.Cryptography": "2.4.0",
@@ -1527,9 +1527,10 @@
           "ExtendedNumerics.BigDecimal": "2025.1001.2.129",
           "MathNet.Numerics.Signed": "5.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
+          "NSax": "1.0.2",
           "SharpZipLib": "1.4.2",
           "SixLabors.Fonts": "1.0.1",
-          "SixLabors.ImageSharp": "2.1.10",
+          "SixLabors.ImageSharp": "2.1.11",
           "System.Security.Cryptography.Xml": "8.0.2",
           "ZString": "2.6.0"
         },
@@ -1572,6 +1573,15 @@
         },
         "runtime": {
           "lib/netstandard2.0/NPOI.ScratchPad.HWPF.dll": {}
+        }
+      },
+      "NSax/1.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/NSax.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/NSax.dll": {}
         }
       },
       "PDFsharp/6.2.1": {
@@ -1836,7 +1846,7 @@
           }
         }
       },
-      "SixLabors.ImageSharp/2.1.10": {
+      "SixLabors.ImageSharp/2.1.11": {
         "type": "package",
         "dependencies": {
           "System.Runtime.CompilerServices.Unsafe": "5.0.0",
@@ -5396,7 +5406,7 @@
           }
         }
       },
-      "NPOI/2.7.4": {
+      "NPOI/2.7.5": {
         "type": "package",
         "dependencies": {
           "BouncyCastle.Cryptography": "2.4.0",
@@ -5404,9 +5414,10 @@
           "ExtendedNumerics.BigDecimal": "2025.1001.2.129",
           "MathNet.Numerics.Signed": "5.0.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
+          "NSax": "1.0.2",
           "SharpZipLib": "1.4.2",
           "SixLabors.Fonts": "1.0.1",
-          "SixLabors.ImageSharp": "2.1.10",
+          "SixLabors.ImageSharp": "2.1.11",
           "System.Security.Cryptography.Xml": "8.0.2",
           "ZString": "2.6.0"
         },
@@ -5449,6 +5460,15 @@
         },
         "runtime": {
           "lib/netstandard2.0/NPOI.ScratchPad.HWPF.dll": {}
+        }
+      },
+      "NSax/1.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/NSax.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/NSax.dll": {}
         }
       },
       "PDFsharp/6.2.1": {
@@ -5936,7 +5956,7 @@
           }
         }
       },
-      "SixLabors.ImageSharp/2.1.10": {
+      "SixLabors.ImageSharp/2.1.11": {
         "type": "package",
         "dependencies": {
           "System.Runtime.CompilerServices.Unsafe": "5.0.0",
@@ -10364,10 +10384,10 @@
         "postgresql.png"
       ]
     },
-    "NPOI/2.7.4": {
-      "sha512": "1tCebTkr9qAfwiEa2ErXco2IT+D8MNmT9d4KFz9nWn3owkc5fAOsvxV8kq6y4531B4Z3gnInrvEdonwFyoRqPQ==",
+    "NPOI/2.7.5": {
+      "sha512": "KmEHqThmfAdq/Q3LLTahpvFKHQMQJrzJNAFIoSZCGIZWUmYBtvxDArmpLF+Zyw1tzCem/rZsefCqJgqfIz2l4w==",
       "type": "package",
-      "path": "npoi/2.7.4",
+      "path": "npoi/2.7.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -10425,7 +10445,7 @@
         "logo/240_240.png",
         "logo/32_32.jpg",
         "logo/60_60.jpg",
-        "npoi.2.7.4.nupkg.sha512",
+        "npoi.2.7.5.nupkg.sha512",
         "npoi.nuspec"
       ]
     },
@@ -10440,6 +10460,22 @@
         "lib/netstandard2.0/NPOI.ScratchPad.HWPF.dll",
         "npoi.hwpfcore.2.3.0.1.nupkg.sha512",
         "npoi.hwpfcore.nuspec"
+      ]
+    },
+    "NSax/1.0.2": {
+      "sha512": "7txlId2RJTQBL3YdSGO7x70+r3HUOCw725lu0OoBgThRl/e3RhAZ2QKYxW2y9dPRtqbFZYHVa8siIeB8+L//Cg==",
+      "type": "package",
+      "path": "nsax/1.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net472/NSax.dll",
+        "lib/net6.0/NSax.dll",
+        "lib/netstandard2.0/NSax.dll",
+        "lib/netstandard2.1/NSax.dll",
+        "nsax.1.0.2.nupkg.sha512",
+        "nsax.nuspec"
       ]
     },
     "PDFsharp/6.2.1": {
@@ -11371,10 +11407,10 @@
         "sixlabors.fonts.nuspec"
       ]
     },
-    "SixLabors.ImageSharp/2.1.10": {
-      "sha512": "hk1E7U3RSlxrBVo6Gb6OjeM52fChpFYH+SZvyT/M2vzSGlzAaKE33hc3V/Pvnjcnn1opT8/Z+0QfqdM5HsIaeA==",
+    "SixLabors.ImageSharp/2.1.11": {
+      "sha512": "tUvsejgzUmEbES114yLseRxmFiYlQbH5RyaYXUQsEL7ksDo1/kW+ZL1EfD6iSUfxj7LHU8p110oFvSrRfsaWSQ==",
       "type": "package",
-      "path": "sixlabors.imagesharp/2.1.10",
+      "path": "sixlabors.imagesharp/2.1.11",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -11389,7 +11425,7 @@
         "lib/netstandard2.1/SixLabors.ImageSharp.dll",
         "lib/netstandard2.1/SixLabors.ImageSharp.xml",
         "sixlabors.imagesharp.128.png",
-        "sixlabors.imagesharp.2.1.10.nupkg.sha512",
+        "sixlabors.imagesharp.2.1.11.nupkg.sha512",
         "sixlabors.imagesharp.nuspec"
       ]
     },
@@ -16161,7 +16197,7 @@
       "Microsoft.EntityFrameworkCore.Tools >= 9.0.10",
       "Microsoft.Office.Interop.Word >= 15.0.4797.1004",
       "Microsoft.Xaml.Behaviors.Wpf >= 1.1.135",
-      "NPOI >= 2.7.4",
+      "NPOI >= 2.7.5",
       "NPOI.HWPFCore >= 2.3.0.1",
       "Npgsql >= 9.0.4",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 9.0.4",
@@ -16172,19 +16208,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Krisztian\\.nuget\\packages\\": {}
+    "C:\\Users\\kriszti\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\EmailCompleteApp.csproj",
+      "projectUniqueName": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\EmailCompleteApp.csproj",
       "projectName": "EmailCompleteApp",
-      "projectPath": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\EmailCompleteApp.csproj",
-      "packagesPath": "C:\\Users\\Krisztian\\.nuget\\packages\\",
-      "outputPath": "E:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\obj\\",
+      "projectPath": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\EmailCompleteApp.csproj",
+      "packagesPath": "C:\\Users\\kriszti\\.nuget\\packages\\",
+      "outputPath": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Krisztian\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\kriszti\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -16260,7 +16296,7 @@
           },
           "NPOI": {
             "target": "Package",
-            "version": "[2.7.4, )"
+            "version": "[2.7.5, )"
           },
           "NPOI.HWPFCore": {
             "target": "Package",
@@ -16305,15 +16341,15 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-            "version": "[8.0.20, 8.0.20]"
+            "version": "[8.0.23, 8.0.23]"
           },
           {
             "name": "Microsoft.NETCore.App.Runtime.win-x64",
-            "version": "[8.0.20, 8.0.20]"
+            "version": "[8.0.23, 8.0.23]"
           },
           {
             "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
-            "version": "[8.0.20, 8.0.20]"
+            "version": "[8.0.23, 8.0.23]"
           }
         ],
         "frameworkReferences": {
@@ -16324,7 +16360,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.310/PortableRuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {

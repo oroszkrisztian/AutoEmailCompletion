@@ -688,8 +688,46 @@ public partial class ComandaTransportViewModel : ObservableObject
 
                 Debug.WriteLine($"✅ Order #{NumarComanda} updated successfully");
 
+                // Generate documents and send email after successful update
+                await GenerateDocumentsAndOpenEmail(
+                    NumarComanda,
+                    NumarClient,
+                    Client,
+                    Contact,
+                    Tarif,
+                    MonedaIndex,
+                    TipIndex,
+                    Transportator,
+                    TransportatorTarif,
+                    TransportatorMonedaIndex,
+                    TransportatorTipIndex,
+                    DataIncarcare,
+                    DataDescarcare,
+                    Produs,
+                    Cantitate,
+                    TipAdrIndex,
+                    Clasa,
+                    Un,
+                    NumarInmatriculare,
+                    LocatieIncarcareAddress,
+                    LocatieIncarcareName,
+                    LocatieIncarcareCity,
+                    LocatieIncarcareCountryCode,
+                    LocatieIncarcarePostalCode,
+                    LocatieIncarcareCounty,
+                    LocatieDescarcareAddress,
+                    LocatieDescarcareName,
+                    LocatieDescarcareCity,
+                    LocatieDescarcareCountryCode,
+                    LocatieDescarcarePostalCode,
+                    LocatieDescarcareCounty,
+                    TermenPlata,
+                    CommentUser
+                );
+
                 MessageBox.Show(
-                    $"✅ Order #{NumarComanda} updated successfully!",
+                    $"✅ Order #{NumarComanda} updated successfully!\n\n" +
+                    $"Documents have been generated and Thunderbird opened with the email attachment.",
                     "Success",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -721,6 +759,193 @@ public partial class ComandaTransportViewModel : ObservableObject
 
     #endregion
 
+    #region Document Generation and Email Helper
+
+    /// <summary>
+    /// Generates documents (comanda.docx and page2.doc) and opens Thunderbird with email attachment
+    /// Used by both SendEmail and UpdateOrder
+    /// </summary>
+    private async Task GenerateDocumentsAndOpenEmail(
+        string numarComanda,
+        string numarClient,
+        string client,
+        string contact,
+        string tarif,
+        int monedaIndex,
+        int tipIndex,
+        string transportator,
+        string transportatorTarif,
+        int transportatorMonedaIndex,
+        int transportatorTipIndex,
+        DateTime? dataIncarcare,
+        DateTime? dataDescarcare,
+        string produs,
+        string cantitate,
+        int tipAdrIndex,
+        string clasa,
+        string un,
+        string numarInmatriculare,
+        string locatieIncarcareAddress,
+        string locatieIncarcareName,
+        string locatieIncarcareCity,
+        string locatieIncarcareCountryCode,
+        string locatieIncarcarePostalCode,
+        string locatieIncarcareCounty,
+        string locatieDescarcareAddress,
+        string locatieDescarcareName,
+        string locatieDescarcareCity,
+        string locatieDescarcareCountryCode,
+        string locatieDescarcarePostalCode,
+        string locatieDescarcareCounty,
+        string termenPlata,
+        string commentUser
+    )
+    {
+        // Option arrays used to resolve selected indices
+        var monedaOptions = new[] { "EUR", "EUR/MT", "RON" };
+        var tipOptions = new[] { "TVA", "ALL IN" };
+        var tipAdrOptions = new[] { "ADR", "NON-ADR" };
+
+        // Build county strings with proper formatting
+        string countyDescarcare = string.IsNullOrWhiteSpace(locatieDescarcareCounty) 
+            ? string.Empty 
+            : ", Jud. " + locatieDescarcareCounty;
+        string countyIncarcare = string.IsNullOrWhiteSpace(locatieIncarcareCounty) 
+            ? string.Empty 
+            : ", Jud. " + locatieIncarcareCounty;
+
+        // Generate comanda.docx (saved to disk permanently - NOT attached to email)
+        var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
+            numarComanda,
+            numarClient,
+            client,
+            contact,
+            tarif,
+            monedaIndex,
+            tipIndex,
+            transportator,
+            transportatorTarif,
+            transportatorMonedaIndex,
+            transportatorTipIndex,
+            dataIncarcare,
+            dataDescarcare,
+            produs,
+            cantitate,
+            tipAdrIndex,
+            clasa,
+            un,
+            numarInmatriculare,
+            locatieIncarcareAddress,
+            locatieIncarcareName,
+            locatieIncarcareCity,
+            locatieIncarcareCountryCode,
+            locatieIncarcarePostalCode,
+            countyIncarcare,
+            locatieDescarcareAddress,
+            locatieDescarcareName,
+            locatieDescarcareCity,
+            locatieDescarcareCountryCode,
+            locatieDescarcarePostalCode,
+            countyDescarcare,
+            termenPlata,
+            commentUser,
+            monedaOptions,
+            tipOptions,
+            tipAdrOptions
+        );
+
+        if (comandaPath == null)
+        {
+            Debug.WriteLine("❌ Failed to generate comanda.docx");
+            throw new Exception("Failed to generate comanda.docx");
+        }
+
+        Debug.WriteLine($"✅ Saved comanda.docx to: {comandaPath}");
+
+        // Build TVA display strings
+        int tipClientIndex = tipIndex;
+        int tipTransportatorIndex = transportatorTipIndex;
+        string tvaClient = tipClientIndex == 0 
+            ? "+ " + tipOptions.ElementAtOrDefault(tipClientIndex) 
+            : tipOptions.ElementAtOrDefault(tipClientIndex) ?? string.Empty;
+        string tvaTransportator = tipTransportatorIndex == 0 
+            ? "+ " + tipOptions.ElementAtOrDefault(tipTransportatorIndex) 
+            : tipOptions.ElementAtOrDefault(tipTransportatorIndex) ?? string.Empty;
+        string cantitateKg = cantitate + " kg";
+
+        // Build replacements for page2.doc
+        var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "DataAzi", DateTime.Today.ToString("dd.MM.yyyy") },
+            { "NumarComanda", numarComanda?.Trim() ?? string.Empty },
+            { "NumarClient", numarClient?.Trim() ?? string.Empty },
+            { "ClientNume", client?.Trim() ?? string.Empty },
+            { "ContactPers", contact?.Trim() ?? string.Empty },
+            { "ClientTarif", tarif?.Trim() ?? string.Empty },
+            { "ClientMoneda", monedaOptions.ElementAtOrDefault(monedaIndex) ?? string.Empty },
+            { "ClientTip", tvaClient },
+            { "TransportatorNume", transportator?.Trim() ?? string.Empty },
+            { "TransportatorTarif", transportatorTarif?.Trim() ?? string.Empty },
+            { "TransportatorMoneda", monedaOptions.ElementAtOrDefault(transportatorMonedaIndex) ?? string.Empty },
+            { "TransportatorTip", tvaTransportator },
+            { "DataIncarcare", dataIncarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
+            { "DataDescarcare", dataDescarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
+            { "Produs", produs?.Trim() ?? string.Empty },
+            { "CantitateComanda", cantitateKg?.Trim() ?? string.Empty },
+            { "TipADR", tipAdrOptions.ElementAtOrDefault(tipAdrIndex) ?? string.Empty },
+            { "Clasa", clasa?.Trim() ?? string.Empty },
+            { "UserUnInput", un?.Trim() ?? string.Empty },
+            { "NumarInmatriculare", numarInmatriculare?.Trim().ToUpper() ?? string.Empty },
+            { "LocatieIncarcareAddress", locatieIncarcareAddress?.Trim() ?? string.Empty },
+            { "LocatieIncarcareName", locatieIncarcareName?.Trim() ?? string.Empty },
+            { "LocatieIncarcareCity", locatieIncarcareCity?.Trim() ?? string.Empty },
+            { "LocatieIncarcareCountryCode", locatieIncarcareCountryCode?.Trim() ?? string.Empty },
+            { "LocatieIncarcarePostalCode", locatieIncarcarePostalCode?.Trim() ?? string.Empty },
+            { "LocatieIncarcareCounty", countyIncarcare?.Trim() ?? string.Empty },
+            { "LocatieDescarcareAddress", locatieDescarcareAddress?.Trim() ?? string.Empty },
+            { "LocatieDescarcareName", locatieDescarcareName?.Trim() ?? string.Empty },
+            { "LocatieDescarcareCity", locatieDescarcareCity?.Trim() ?? string.Empty },
+            { "LocatieDescarcareCountryCode", locatieDescarcareCountryCode?.Trim() ?? string.Empty },
+            { "LocatieDescarcarePostalCode", locatieDescarcarePostalCode?.Trim() ?? string.Empty },
+            { "LocatieDescarcareCounty", countyDescarcare?.Trim() ?? string.Empty },
+            { "TermenPlata", termenPlata?.Trim() ?? string.Empty },
+            { "Comments", commentUser?.Trim() ?? string.Empty }
+        };
+
+        // Find page2.docx template path
+        string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
+        string projectDir = FindProjectDirectory(projectRoot);
+        string docDir = System.IO.Path.Combine(projectDir, "doc");
+        string page2TemplatePath = System.IO.Path.Combine(docDir, "page2.docx");
+
+        if (System.IO.File.Exists(page2TemplatePath))
+        {
+            // Generate page2.doc and open Thunderbird
+            var page2Path = await _documentCompletion.GenerateAndSendPage2DocAsync(
+                page2TemplatePath, 
+                replacements, 
+                numarComanda, 
+                locatieIncarcareCity, 
+                locatieDescarcareCity);
+            
+            if (page2Path != null)
+            {
+                _documentCompletion.OpenThunderbirdAndCleanup(new[] { page2Path }, new[] { page2Path });
+                Debug.WriteLine($"📧 Thunderbird opened with email attachment for order #{numarComanda}");
+            }
+            else
+            {
+                Debug.WriteLine("❌ Failed to generate page2.doc");
+            }
+        }
+        else
+        {
+            Debug.WriteLine($"⚠️ page2.docx template not found at: {page2TemplatePath}");
+        }
+    }
+
+    #endregion
+
     #region Send Email Command
 
     [RelayCommand(CanExecute = nameof(CanSendEmail))]
@@ -731,13 +956,6 @@ public partial class ComandaTransportViewModel : ObservableObject
             IsSendingEmail = true;
 
             Debug.WriteLine("📧 Preparing to send email...");
-
-            // Option arrays used to resolve selected indices
-            var monedaOptions = new[] { "EUR", "EUR/MT", "RON" };
-            var tipOptions = new[] { "TVA", "ALL IN" };
-            var tipAdrOptions = new[] { "ADR", "NON-ADR" };
-            var clientTarifValue = Tarif + " " + monedaOptions.ElementAtOrDefault(MonedaIndex);
-            var transportatorTarifValue = TransportatorTarif + " " + monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex);
 
             //recheck from api last number again
             await ReloadLastOrder();
@@ -770,89 +988,68 @@ public partial class ComandaTransportViewModel : ObservableObject
             decimal? cantitateValue = decimal.TryParse(Cantitate, out var c) ? c : (decimal?)null;
             int? termenPlataValue = int.TryParse(TermenPlata, out var tp) ? tp : (int?)null;
 
-            var responseHistorySave = await _historyRepository.InsertHistory(new HistoryTransport
-            {
-                // Comanda / Client
-                NumarComanda = NumarComanda,
-                NumarClient = NumarClient,
-                Client = Client,
-                Contact = Contact,
+            //var responseHistorySave = await _historyRepository.InsertHistory(new HistoryTransport
+            //{
+            //    // Comanda / Client
+            //    NumarComanda = NumarComanda,
+            //    NumarClient = NumarClient,
+            //    Client = Client,
+            //    Contact = Contact,
 
 
 
-                // Tarif client
-                Tarif = tarifValue,
-                MonedaIndex = MonedaIndex,
-                TipIndex = TipIndex,
+            //    // Tarif client
+            //    Tarif = tarifValue,
+            //    MonedaIndex = MonedaIndex,
+            //    TipIndex = TipIndex,
 
-                // Transportator
-                Transportator = Transportator,
-                TransportatorTarif = transportatorTarifDecimal,
-                TransportatorMonedaIndex = TransportatorMonedaIndex,
-                TransportatorTipIndex = TransportatorTipIndex,
+            //    // Transportator
+            //    Transportator = Transportator,
+            //    TransportatorTarif = transportatorTarifDecimal,
+            //    TransportatorMonedaIndex = TransportatorMonedaIndex,
+            //    TransportatorTipIndex = TransportatorTipIndex,
 
-                // Date
-                DataIncarcare = EnsureUtcDate(DataIncarcare),
-                DataDescarcare = EnsureUtcDate(DataDescarcare),
+            //    // Date
+            //    DataIncarcare = EnsureUtcDate(DataIncarcare),
+            //    DataDescarcare = EnsureUtcDate(DataDescarcare),
 
-                // Marfa
-                Produs = Produs,
-                Cantitate = Cantitate,
-                TipAdrIndex = TipAdrIndex,
-                Clasa = Clasa,
-                Un = Un,
-                NumarInmatriculare = NumarInmatriculare,
+            //    // Marfa
+            //    Produs = Produs,
+            //    Cantitate = Cantitate,
+            //    TipAdrIndex = TipAdrIndex,
+            //    Clasa = Clasa,
+            //    Un = Un,
+            //    NumarInmatriculare = NumarInmatriculare,
 
-                // Locatie incarcare
-                LocatieIncarcareAddress = LocatieIncarcareAddress,
-                LocatieIncarcareName = LocatieIncarcareName,
-                LocatieIncarcareCity = LocatieIncarcareCity,
-                LocatieIncarcareCountryCode = LocatieIncarcareCountryCode,
-                LocatieIncarcarePostalCode = LocatieIncarcarePostalCode,
-                LocatieIncarcareCounty = LocatieIncarcareCounty,
+            //    // Locatie incarcare
+            //    LocatieIncarcareAddress = LocatieIncarcareAddress,
+            //    LocatieIncarcareName = LocatieIncarcareName,
+            //    LocatieIncarcareCity = LocatieIncarcareCity,
+            //    LocatieIncarcareCountryCode = LocatieIncarcareCountryCode,
+            //    LocatieIncarcarePostalCode = LocatieIncarcarePostalCode,
+            //    LocatieIncarcareCounty = LocatieIncarcareCounty,
 
-                // Locatie descarcare
-                LocatieDescarcareAddress = LocatieDescarcareAddress,
-                LocatieDescarcareName = LocatieDescarcareName,
-                LocatieDescarcareCity = LocatieDescarcareCity,
-                LocatieDescarcareCountryCode = LocatieDescarcareCountryCode,
-                LocatieDescarcarePostalCode = LocatieDescarcarePostalCode,
-                LocatieDescarcareCounty = LocatieDescarcareCounty,
+            //    // Locatie descarcare
+            //    LocatieDescarcareAddress = LocatieDescarcareAddress,
+            //    LocatieDescarcareName = LocatieDescarcareName,
+            //    LocatieDescarcareCity = LocatieDescarcareCity,
+            //    LocatieDescarcareCountryCode = LocatieDescarcareCountryCode,
+            //    LocatieDescarcarePostalCode = LocatieDescarcarePostalCode,
+            //    LocatieDescarcareCounty = LocatieDescarcareCounty,
 
-                // Alte informatii
-                TermenPlata = termenPlataValue,
-                CommentUser = CommentUser
-            });
+            //    // Alte informatii
+            //    TermenPlata = termenPlataValue,
+            //    CommentUser = CommentUser
+            //});
 
-            if (responseHistorySave == null)
-            {
-                Debug.WriteLine("❌ Failed to save history record");
-                throw new Exception("Failed to save history record before sending email.");
-            }
+            //if (responseHistorySave == null)
+            //{
+            //    Debug.WriteLine("❌ Failed to save history record");
+            //    throw new Exception("Failed to save history record before sending email.");
+            //}
 
-
-
-            // Generate comanda.docx (saved to disk permanently - NOT attached to email)
-            string countyDescarcare = string.Empty;
-            string countyIncarcare = string.Empty;
-            if (!string.IsNullOrWhiteSpace(LocatieDescarcareCounty))
-            {
-                countyDescarcare = ", Jud. " + LocatieDescarcareCounty;
-            }else
-            {
-                countyDescarcare = LocatieDescarcareCounty;
-            }
-            if (!string.IsNullOrWhiteSpace(LocatieIncarcareCounty))
-            {
-                countyIncarcare = ", Jud. " + LocatieIncarcareCounty;
-            }
-            else
-            {
-                countyIncarcare = LocatieIncarcareCounty;
-            }
-
-
-            var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
+            // Generate documents and open email using the helper method
+            await GenerateDocumentsAndOpenEmail(
                 NumarComanda,
                 NumarClient,
                 Client,
@@ -872,104 +1069,21 @@ public partial class ComandaTransportViewModel : ObservableObject
                 Clasa,
                 Un,
                 NumarInmatriculare,
-                // Pickup location components
                 LocatieIncarcareAddress,
                 LocatieIncarcareName,
                 LocatieIncarcareCity,
                 LocatieIncarcareCountryCode,
                 LocatieIncarcarePostalCode,
-                countyIncarcare,
-                // Delivery location components
+                LocatieIncarcareCounty,
                 LocatieDescarcareAddress,
                 LocatieDescarcareName,
                 LocatieDescarcareCity,
                 LocatieDescarcareCountryCode,
                 LocatieDescarcarePostalCode,
-                countyDescarcare,
+                LocatieDescarcareCounty,
                 TermenPlata,
-                CommentUser,
-                monedaOptions,
-                tipOptions,
-                tipAdrOptions
+                CommentUser
             );
-
-            if (comandaPath == null)
-            {
-                Debug.WriteLine("❌ Failed to generate comanda.docx");
-                throw new Exception("Failed to generate comanda.docx");
-            }
-
-            Debug.WriteLine($"✅ Saved comanda.docx to: {comandaPath}");
-
-            int tipClientIndex = TipIndex;
-            int tipTransportatorIndex = TransportatorTipIndex;
-            string tvaClient = tipClientIndex == 0 ? "+ " + tipOptions.ElementAtOrDefault(tipClientIndex) : tipOptions.ElementAtOrDefault(tipClientIndex) ?? string.Empty;
-            string tvaTransportator = tipTransportatorIndex == 0 ? "+ " + tipOptions.ElementAtOrDefault(tipTransportatorIndex) : tipOptions.ElementAtOrDefault(tipTransportatorIndex) ?? string.Empty;
-            string cantitateKg = Cantitate + " kg";
-
-            // Build replacements for page2.doc
-            var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "DataAzi", DateTime.Today.ToString("dd.MM.yyyy") },
-                { "NumarComanda", NumarComanda?.Trim() ?? string.Empty },
-                { "NumarClient", NumarClient?.Trim() ?? string.Empty },
-                { "ClientNume", Client?.Trim() ?? string.Empty },
-                { "ContactPers", Contact?.Trim() ?? string.Empty },
-                { "ClientTarif", Tarif?.Trim() ?? string.Empty },
-                { "ClientMoneda", monedaOptions.ElementAtOrDefault(MonedaIndex) ?? string.Empty },
-                { "ClientTip", tvaClient },
-                { "TransportatorNume", Transportator?.Trim() ?? string.Empty },
-                { "TransportatorTarif", TransportatorTarif?.Trim() ?? string.Empty },
-                { "TransportatorMoneda", monedaOptions.ElementAtOrDefault(TransportatorMonedaIndex) ?? string.Empty },
-                { "TransportatorTip", tvaTransportator },
-                { "DataIncarcare", DataIncarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
-                { "DataDescarcare", DataDescarcare?.ToString("dd.MM.yyyy") ?? string.Empty },
-                { "Produs", Produs?.Trim() ?? string.Empty },
-                { "CantitateComanda", cantitateKg?.Trim() ?? string.Empty },
-                { "TipADR", tipAdrOptions.ElementAtOrDefault(TipAdrIndex) ?? string.Empty },
-                { "Clasa", Clasa?.Trim() ?? string.Empty },
-                { "UserUnInput", Un?.Trim() ?? string.Empty },
-                { "NumarInmatriculare", NumarInmatriculare?.Trim().ToUpper() ?? string.Empty },
-                { "LocatieIncarcareAddress", LocatieIncarcareAddress?.Trim() ?? string.Empty },
-                { "LocatieIncarcareName", LocatieIncarcareName?.Trim() ?? string.Empty },
-                { "LocatieIncarcareCity", LocatieIncarcareCity?.Trim() ?? string.Empty },
-                { "LocatieIncarcareCountryCode", LocatieIncarcareCountryCode?.Trim() ?? string.Empty },
-                { "LocatieIncarcarePostalCode", LocatieIncarcarePostalCode?.Trim() ?? string.Empty },
-                { "LocatieIncarcareCounty", countyIncarcare?.Trim() ?? string.Empty },
-                { "LocatieDescarcareAddress", LocatieDescarcareAddress?.Trim() ?? string.Empty },
-                { "LocatieDescarcareName", LocatieDescarcareName?.Trim() ?? string.Empty },
-                { "LocatieDescarcareCity", LocatieDescarcareCity?.Trim() ?? string.Empty },
-                { "LocatieDescarcareCountryCode", LocatieDescarcareCountryCode?.Trim() ?? string.Empty },
-                { "LocatieDescarcarePostalCode", LocatieDescarcarePostalCode?.Trim() ?? string.Empty },
-                { "LocatieDescarcareCounty", countyDescarcare?.Trim() ?? string.Empty },
-                { "TermenPlata", TermenPlata?.Trim() ?? string.Empty },
-                { "Comments", CommentUser?.Trim() ?? string.Empty }
-            };
-
-            // Find page2.docx template path
-            string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
-            string projectDir = FindProjectDirectory(projectRoot);
-            string docDir = System.IO.Path.Combine(projectDir, "doc");
-            string page2TemplatePath = System.IO.Path.Combine(docDir, "page2.docx");
-
-            if (System.IO.File.Exists(page2TemplatePath))
-            {
-                // Generate page2.doc as temp file
-                var page2Path = await _documentCompletion.GenerateAndSendPage2DocAsync(page2TemplatePath, replacements, NumarComanda, LocatieIncarcareCity, LocatieDescarcareCity);
-                if (page2Path != null)
-                {
-                    // Open Thunderbird with ONLY page2.doc attached, then cleanup
-                    _documentCompletion.OpenThunderbirdAndCleanup(new[] { page2Path }, new[] { page2Path });
-                }
-                else
-                {
-                    Debug.WriteLine("❌ Failed to generate page2.doc");
-                }
-            }
-            else
-            {
-                Debug.WriteLine($"⚠️ page2.docx template not found at: {page2TemplatePath}");
-            }
 
 
             Debug.WriteLine("📧 Email sent successfully");

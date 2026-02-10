@@ -12,8 +12,8 @@
       }
     ],
     "additionalProbingPaths": [
-      "C:\\Users\\Krisztian\\.dotnet\\store\\|arch|\\|tfm|",
-      "C:\\Users\\Krisztian\\.nuget\\packages"
+      "C:\\Users\\kriszti\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\kriszti\\.nuget\\packages"
     ],
     "configProperties": {
       "MVVMTOOLKIT_ENABLE_INOTIFYPROPERTYCHANGING_SUPPORT": true,
