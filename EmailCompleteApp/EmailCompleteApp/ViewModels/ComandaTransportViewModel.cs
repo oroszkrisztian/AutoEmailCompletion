@@ -813,46 +813,57 @@ public partial class ComandaTransportViewModel : ObservableObject
         string countyIncarcare = string.IsNullOrWhiteSpace(locatieIncarcareCounty) 
             ? string.Empty 
             : ", Jud. " + locatieIncarcareCounty;
+        string unInput = string.Empty;
+        if(tipAdrIndex == 0)
+        {
+            unInput = ",UN " + un;
+        }
+        else
+        {
+            unInput = string.Empty;
+        }
 
-        // Generate comanda.docx (saved to disk permanently - NOT attached to email)
-        var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
-            numarComanda,
-            numarClient,
-            client,
-            contact,
-            tarif,
-            monedaIndex,
-            tipIndex,
-            transportator,
-            transportatorTarif,
-            transportatorMonedaIndex,
-            transportatorTipIndex,
-            dataIncarcare,
-            dataDescarcare,
-            produs,
-            cantitate,
-            tipAdrIndex,
-            clasa,
-            un,
-            numarInmatriculare,
-            locatieIncarcareAddress,
-            locatieIncarcareName,
-            locatieIncarcareCity,
-            locatieIncarcareCountryCode,
-            locatieIncarcarePostalCode,
-            countyIncarcare,
-            locatieDescarcareAddress,
-            locatieDescarcareName,
-            locatieDescarcareCity,
-            locatieDescarcareCountryCode,
-            locatieDescarcarePostalCode,
-            countyDescarcare,
-            termenPlata,
-            commentUser,
-            monedaOptions,
-            tipOptions,
-            tipAdrOptions
-        );
+
+
+            // Generate comanda.docx (saved to disk permanently - NOT attached to email)
+            var comandaPath = await _documentCompletion.GenerateAndSendDocumentAsync(
+                numarComanda,
+                numarClient,
+                client,
+                contact,
+                tarif,
+                monedaIndex,
+                tipIndex,
+                transportator,
+                transportatorTarif,
+                transportatorMonedaIndex,
+                transportatorTipIndex,
+                dataIncarcare,
+                dataDescarcare,
+                produs,
+                cantitate,
+                tipAdrIndex,
+                clasa,
+                unInput,
+                numarInmatriculare,
+                locatieIncarcareAddress,
+                locatieIncarcareName,
+                locatieIncarcareCity,
+                locatieIncarcareCountryCode,
+                locatieIncarcarePostalCode,
+                countyIncarcare,
+                locatieDescarcareAddress,
+                locatieDescarcareName,
+                locatieDescarcareCity,
+                locatieDescarcareCountryCode,
+                locatieDescarcarePostalCode,
+                countyDescarcare,
+                termenPlata,
+                commentUser,
+                monedaOptions,
+                tipOptions,
+                tipAdrOptions
+            );
 
         if (comandaPath == null)
         {
@@ -872,6 +883,8 @@ public partial class ComandaTransportViewModel : ObservableObject
             ? "+ " + tipOptions.ElementAtOrDefault(tipTransportatorIndex) 
             : tipOptions.ElementAtOrDefault(tipTransportatorIndex) ?? string.Empty;
         string cantitateKg = cantitate + " kg";
+
+        
 
         // Build replacements for page2.doc
         var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -894,7 +907,7 @@ public partial class ComandaTransportViewModel : ObservableObject
             { "CantitateComanda", cantitateKg?.Trim() ?? string.Empty },
             { "TipADR", tipAdrOptions.ElementAtOrDefault(tipAdrIndex) ?? string.Empty },
             { "Clasa", clasa?.Trim() ?? string.Empty },
-            { "UserUnInput", un?.Trim() ?? string.Empty },
+            { "UserUnInput", unInput?.Trim() ?? string.Empty },
             { "NumarInmatriculare", numarInmatriculare?.Trim().ToUpper() ?? string.Empty },
             { "LocatieIncarcareAddress", locatieIncarcareAddress?.Trim() ?? string.Empty },
             { "LocatieIncarcareName", locatieIncarcareName?.Trim() ?? string.Empty },
@@ -988,65 +1001,66 @@ public partial class ComandaTransportViewModel : ObservableObject
             decimal? cantitateValue = decimal.TryParse(Cantitate, out var c) ? c : (decimal?)null;
             int? termenPlataValue = int.TryParse(TermenPlata, out var tp) ? tp : (int?)null;
 
-            //var responseHistorySave = await _historyRepository.InsertHistory(new HistoryTransport
-            //{
-            //    // Comanda / Client
-            //    NumarComanda = NumarComanda,
-            //    NumarClient = NumarClient,
-            //    Client = Client,
-            //    Contact = Contact,
+
+            var responseHistorySave = await _historyRepository.InsertHistory(new HistoryTransport
+            {
+                // Comanda / Client
+                NumarComanda = NumarComanda,
+                NumarClient = NumarClient,
+                Client = Client,
+                Contact = Contact,
 
 
 
-            //    // Tarif client
-            //    Tarif = tarifValue,
-            //    MonedaIndex = MonedaIndex,
-            //    TipIndex = TipIndex,
+                // Tarif client
+                Tarif = tarifValue,
+                MonedaIndex = MonedaIndex,
+                TipIndex = TipIndex,
 
-            //    // Transportator
-            //    Transportator = Transportator,
-            //    TransportatorTarif = transportatorTarifDecimal,
-            //    TransportatorMonedaIndex = TransportatorMonedaIndex,
-            //    TransportatorTipIndex = TransportatorTipIndex,
+                // Transportator
+                Transportator = Transportator,
+                TransportatorTarif = transportatorTarifDecimal,
+                TransportatorMonedaIndex = TransportatorMonedaIndex,
+                TransportatorTipIndex = TransportatorTipIndex,
 
-            //    // Date
-            //    DataIncarcare = EnsureUtcDate(DataIncarcare),
-            //    DataDescarcare = EnsureUtcDate(DataDescarcare),
+                // Date
+                DataIncarcare = EnsureUtcDate(DataIncarcare),
+                DataDescarcare = EnsureUtcDate(DataDescarcare),
 
-            //    // Marfa
-            //    Produs = Produs,
-            //    Cantitate = Cantitate,
-            //    TipAdrIndex = TipAdrIndex,
-            //    Clasa = Clasa,
-            //    Un = Un,
-            //    NumarInmatriculare = NumarInmatriculare,
+                // Marfa
+                Produs = Produs,
+                Cantitate = Cantitate,
+                TipAdrIndex = TipAdrIndex,
+                Clasa = Clasa,
+                Un = Un,
+                NumarInmatriculare = NumarInmatriculare,
 
-            //    // Locatie incarcare
-            //    LocatieIncarcareAddress = LocatieIncarcareAddress,
-            //    LocatieIncarcareName = LocatieIncarcareName,
-            //    LocatieIncarcareCity = LocatieIncarcareCity,
-            //    LocatieIncarcareCountryCode = LocatieIncarcareCountryCode,
-            //    LocatieIncarcarePostalCode = LocatieIncarcarePostalCode,
-            //    LocatieIncarcareCounty = LocatieIncarcareCounty,
+                // Locatie incarcare
+                LocatieIncarcareAddress = LocatieIncarcareAddress,
+                LocatieIncarcareName = LocatieIncarcareName,
+                LocatieIncarcareCity = LocatieIncarcareCity,
+                LocatieIncarcareCountryCode = LocatieIncarcareCountryCode,
+                LocatieIncarcarePostalCode = LocatieIncarcarePostalCode,
+                LocatieIncarcareCounty = LocatieIncarcareCounty,
 
-            //    // Locatie descarcare
-            //    LocatieDescarcareAddress = LocatieDescarcareAddress,
-            //    LocatieDescarcareName = LocatieDescarcareName,
-            //    LocatieDescarcareCity = LocatieDescarcareCity,
-            //    LocatieDescarcareCountryCode = LocatieDescarcareCountryCode,
-            //    LocatieDescarcarePostalCode = LocatieDescarcarePostalCode,
-            //    LocatieDescarcareCounty = LocatieDescarcareCounty,
+                // Locatie descarcare
+                LocatieDescarcareAddress = LocatieDescarcareAddress,
+                LocatieDescarcareName = LocatieDescarcareName,
+                LocatieDescarcareCity = LocatieDescarcareCity,
+                LocatieDescarcareCountryCode = LocatieDescarcareCountryCode,
+                LocatieDescarcarePostalCode = LocatieDescarcarePostalCode,
+                LocatieDescarcareCounty = LocatieDescarcareCounty,
 
-            //    // Alte informatii
-            //    TermenPlata = termenPlataValue,
-            //    CommentUser = CommentUser
-            //});
+                // Alte informatii
+                TermenPlata = termenPlataValue,
+                CommentUser = CommentUser
+            });
 
-            //if (responseHistorySave == null)
-            //{
-            //    Debug.WriteLine("❌ Failed to save history record");
-            //    throw new Exception("Failed to save history record before sending email.");
-            //}
+            if (responseHistorySave == null)
+            {
+                Debug.WriteLine("❌ Failed to save history record");
+                throw new Exception("Failed to save history record before sending email.");
+            }
 
             // Generate documents and open email using the helper method
             await GenerateDocumentsAndOpenEmail(

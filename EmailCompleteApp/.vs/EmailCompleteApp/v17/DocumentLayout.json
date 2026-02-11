@@ -70,8 +70,7 @@
               "RelativeToolTip": "EmailCompleteApp\\Models\\Contact.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-30T11:15:30.058Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-30T11:15:30.058Z"
             },
             {
               "$type": "Document",
@@ -104,9 +103,9 @@
               "Title": "ComandaTransportViewModel.cs",
               "DocumentMoniker": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\ViewModels\\ComandaTransportViewModel.cs",
               "RelativeDocumentMoniker": "EmailCompleteApp\\ViewModels\\ComandaTransportViewModel.cs",
-              "ToolTip": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\ViewModels\\ComandaTransportViewModel.cs",
-              "RelativeToolTip": "EmailCompleteApp\\ViewModels\\ComandaTransportViewModel.cs",
-              "ViewState": "AgIAAAYEAAAAAAAAAAAcwBEEAAArAAAAAAAAAA==",
+              "ToolTip": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\ViewModels\\ComandaTransportViewModel.cs*",
+              "RelativeToolTip": "EmailCompleteApp\\ViewModels\\ComandaTransportViewModel.cs*",
+              "ViewState": "AgIAAB8DAAAAAAAAAAAYwDADAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-30T11:53:04.777Z",
               "EditorCaption": ""
@@ -144,8 +143,7 @@
               "ToolTip": "F:\\AutoEmailCompletion\\EmailCompleteApp\\EmailCompleteApp\\Pages\\ComandaTransport.xaml",
               "RelativeToolTip": "EmailCompleteApp\\Pages\\ComandaTransport.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-02-03T18:45:16.761Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-03T18:45:16.761Z"
             },
             {
               "$type": "Document",
